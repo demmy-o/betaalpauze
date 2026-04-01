@@ -1,0 +1,42 @@
+# Cursor rules for this prototype
+
+You are helping build a prototype web app. Here is the full tech stack:
+
+- **Framework**: Next.js 14+ with App Router (use page.tsx, layout.tsx conventions)
+- **Language**: TypeScript (always use types, never use `any`)
+- **Styling**: Tailwind CSS (use utility classes only, no custom CSS unless necessary)
+- **UI components**: shadcn/ui — always prefer these over custom HTML. Import from "@/components/ui/..."
+- **Database**: Notion — import the client from "@/lib/notion"
+
+## How to work in this project
+
+- Keep components small and focused on one thing
+- Put pages in `app/`, reusable components in `components/`, helper functions in `lib/`
+- Always handle loading and error states in the UI
+- Use shadcn/ui components wherever possible (Button, Card, Input, Form, etc.)
+
+## Example Notion query
+
+```typescript
+import { notion, DATABASE_ID } from "@/lib/notion"
+
+const response = await notion.databases.query({
+  database_id: DATABASE_ID,
+})
+```
+
+## shadcn/ui component example
+
+```tsx
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+export default function Example() {
+  return (
+    <Card>
+      <CardHeader><CardTitle>Hello</CardTitle></CardHeader>
+      <CardContent><Button>Click me</Button></CardContent>
+    </Card>
+  )
+}
+```
