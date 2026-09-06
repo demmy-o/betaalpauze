@@ -23,13 +23,14 @@ export default function Home() {
             {/* text-box knipt de regelruimte boven de eerste regel weg,
                 zodat de letters exact op de bovenkant van het blauwe vlak lijnen */}
             <h1 className="font-serif text-[32px] leading-[1.12] font-medium tracking-[-0.01em] text-ink [text-box:trim-start_cap_alphabetic] md:text-[48px]">
-              Wij maken een betaalafspraak makkelijk. En nakomen ook.
+              Een betaalafspraak die je zelf maakt, kom je eerder na.
             </h1>
             <p className="font-serif text-[18px] leading-[1.65] text-ink-soft md:text-[21.8px]">
               Wie tijdelijk niet kan betalen, komt nu in een traject vol
               onduidelijkheid, boetes en oplopende kosten. Betaalpauze draait
               dat om: één afspraak vooraf, zonder boetes, en daarna hulp om die
-              afspraak na te komen.
+              afspraak na te komen. We bouwen er nu aan. Laat je e-mailadres
+              achter, dan hoor je het als het zover is.
             </p>
 
             <div className="max-w-[480px] pt-[13px]">
