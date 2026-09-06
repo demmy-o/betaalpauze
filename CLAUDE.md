@@ -10,8 +10,8 @@ Betaalpauze.nl helpt mensen in financiële stress om een betaalpauze aan te vrag
 - **shadcn/ui** voor componenten
 - **Tailwind CSS** voor styling
 - **Motion** voor animaties
-- **Supabase** voor database (nog te koppelen)
-- **E-mail service** zoals Resend (nog te koppelen)
+- **Supabase** voor database (tabel `signups` voor de wachtlijst)
+- **Resend** voor e-mailnotificaties
 
 ## Projectstructuur
 
@@ -59,30 +59,40 @@ Dit bevat een werkende multi-step form met de volgende stappen:
 
 Gebruik de v1 code als referentie voor de UX en copy, maar schrijf alles opnieuw (schone lei).
 
-## Hosting: mijn.host
+## Hosting en deploy: Netlify
 
-Zie `docs/mijnhost-deploy.md` voor de volledige deployment handleiding.
+De site draait op **Netlify** (project `betaalpauze`, gekoppeld aan deze GitHub-repo). Netlify bouwt en publiceert automatisch bij elke push naar `main`. Er is geen deploy-script, GitHub Action of serverstap meer nodig.
 
-Samengevat:
-- Hosting via **DirectAdmin** op mijn.host
-- Node.js app (geen static export)
-- Deploy via SSH: `git pull && npm run build && pm2 restart betaalpauze`
-- Omgevingsvariabelen instellen via DirectAdmin of `.env.production`
+- Live: https://betaalpauze.nl (www redirect naar apex)
+- Deploys en logs: https://app.netlify.com/projects/betaalpauze/deploys
+- Build: Next.js Runtime, `npm run build`, publish directory `.next`
+- DNS staat bij mijn.host (A-record naar Netlify, www CNAME naar betaalpauze.netlify.app). Mail loopt via mijn.host.
+- `deploy.sh`, `setup.sh` en `docs/mijnhost-deploy.md` zijn overblijfselen van de oude mijn.host-hosting en worden niet meer gebruikt.
+
+## Git en pushen (regels voor Claude Code)
+
+Er is één branch: `main`. Volg bij elke wijziging deze stappen en stop als iets afwijkt:
+
+1. `git status` en `git branch -a`: bevestig dat je op `main` staat. Bestaat er een andere lokale branch, laat die zien en vraag wat ermee moet. Maak zelf geen branches aan en merge niets.
+2. `git fetch origin` en `git status -sb`. Loopt `main` achter op `origin/main`, doe eerst `git pull --rebase origin main`.
+3. Toon de lijst met gewijzigde bestanden voordat je commit. Commit nooit `.env*`, `node_modules`, `.next` of losse zip-bestanden.
+4. Commit met een korte Nederlandse message in de stijl `feat: ...`, `fix: ...` of `chore: ...`.
+5. `git push origin main`.
+6. Meld daarna de commit-hash en dat Netlify nu automatisch bouwt (live na ongeveer een minuut).
 
 ## Omgevingsvariabelen
 
-Maak een `.env.local` aan (nooit committen):
+Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde vijf:
 
 ```env
-# Supabase
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-# Email (Resend)
 RESEND_API_KEY=
-FROM_EMAIL=noreply@betaalpauze.nl
+RESEND_FROM_EMAIL=
+NOTIFY_EMAIL=
 ```
+
+Is een nieuwe env-var nodig? Zeg dat expliciet: die moet handmatig in Netlify worden toegevoegd, gevolgd door "Trigger deploy" (de `NEXT_PUBLIC_*` vars worden in de build ingebakken).
 
 ## GitHub
 
@@ -90,5 +100,5 @@ Repository: https://github.com/demmy-o/betaalpauze
 
 Workflow:
 1. Lokaal ontwikkelen: `npm run dev`
-2. Committen en pushen: `git push`
-3. Op server deployen: zie `docs/mijnhost-deploy.md`
+2. Committen en pushen naar `main` (zie regels hierboven)
+3. Netlify deployt automatisch
