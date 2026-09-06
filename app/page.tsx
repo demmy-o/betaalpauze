@@ -1,33 +1,36 @@
-import { Pause } from "lucide-react"
+import Image from "next/image"
+import { PauseIllustration } from "./components/PauseIllustration"
 import { WaitlistForm } from "./components/WaitlistForm"
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#fbfafc] px-5 py-10 md:px-12 md:py-20">
-      <div className="mx-auto max-w-5xl">
-        <span className="text-lg font-semibold text-[#1c1b2e]">
-          betaalpauze.nl
-        </span>
+    <main className="min-h-screen bg-canvas px-6 py-10 md:px-12">
+      <div className="mx-auto flex max-w-[1104px] flex-col gap-6">
+        <header className="flex h-10 items-center">
+          <Image
+            src="/logo-betaalpauze.svg"
+            alt="betaalpauze.nl"
+            width={152}
+            height={40}
+            priority
+          />
+        </header>
 
-        <div className="mt-10 grid gap-10 md:mt-16 md:grid-cols-2 md:items-center md:gap-16">
-          <div className="aspect-square w-full rounded-[32px] bg-[#a9e8bc] flex items-center justify-center">
-            <div className="flex h-16 w-28 items-center rounded-full bg-[#fbfafc] px-1.5 md:h-20 md:w-36">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1c1b2e] md:h-16 md:w-16">
-                <Pause className="h-6 w-6 fill-white text-white md:h-8 md:w-8" />
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-col items-center gap-10 py-8 md:flex-row md:items-start md:gap-16 md:py-12">
+          <PauseIllustration />
 
-          <div>
-            <h1 className="text-3xl font-medium tracking-tight text-[#1c1b2e] md:text-5xl">
+          <div className="flex w-full max-w-[560px] flex-col gap-[15px] md:flex-[1_1_560px]">
+            {/* text-box knipt de regelruimte boven de eerste regel weg,
+                zodat de letters exact op de bovenkant van het blauwe vlak lijnen */}
+            <h1 className="font-serif text-[32px] leading-[1.12] font-medium tracking-[-0.01em] text-ink [text-box:trim-start_cap_alphabetic] md:text-[48px]">
               Even geen ruimte om te betalen. Daar komt rust in.
             </h1>
-            <p className="mt-4 text-base text-[#55536b] md:mt-6 md:text-lg">
+            <p className="font-serif text-[18px] leading-[1.65] text-ink-soft md:text-[21.8px]">
               Betaalpauze wordt de plek waar je je betalingen tijdelijk stilzet
               en vooraf weet wat dat kost en wanneer het weer begint.
             </p>
 
-            <div className="mt-8 max-w-md">
+            <div className="max-w-[480px] pt-[13px]">
               <WaitlistForm />
             </div>
           </div>

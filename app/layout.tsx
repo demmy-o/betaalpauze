@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { Noto_Sans, Noto_Serif } from "next/font/google";
 import "./globals.css";
+
+const notoSans = Noto_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const notoSerif = Noto_Serif({ subsets: ["latin"], variable: "--font-serif" });
 
 export const metadata: Metadata = {
   title: "Betaalpauze.nl — Vraag een betaalpauze aan",
@@ -13,8 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" className="h-full antialiased font-sans">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html
+      lang="nl"
+      className={`h-full antialiased font-sans ${notoSans.variable} ${notoSerif.variable}`}
+    >
+      <body className="min-h-full flex flex-col bg-canvas">{children}</body>
     </html>
   );
 }
