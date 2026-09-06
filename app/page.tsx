@@ -23,11 +23,13 @@ export default function Home() {
             {/* text-box knipt de regelruimte boven de eerste regel weg,
                 zodat de letters exact op de bovenkant van het blauwe vlak lijnen */}
             <h1 className="font-serif text-[32px] leading-[1.12] font-medium tracking-[-0.01em] text-ink [text-box:trim-start_cap_alphabetic] md:text-[48px]">
-              Even geen ruimte om te betalen. Daar komt rust in.
+              Wij maken een betaalafspraak makkelijk. En nakomen ook.
             </h1>
             <p className="font-serif text-[18px] leading-[1.65] text-ink-soft md:text-[21.8px]">
-              Betaalpauze wordt de plek waar je je betalingen tijdelijk stilzet
-              en vooraf weet wat dat kost en wanneer het weer begint.
+              Wie tijdelijk niet kan betalen, komt nu in een traject vol
+              onduidelijkheid, boetes en oplopende kosten. Betaalpauze draait
+              dat om: één afspraak vooraf, zonder boetes, en daarna hulp om die
+              afspraak na te komen.
             </p>
 
             <div className="max-w-[480px] pt-[13px]">
