@@ -67,7 +67,7 @@ De site draait op **Netlify** (project `betaalpauze`, gekoppeld aan deze GitHub-
 - Deploys en logs: https://app.netlify.com/projects/betaalpauze/deploys
 - Build: Next.js Runtime, `npm run build`, publish directory `.next`
 - DNS staat bij mijn.host (A-record naar Netlify, www CNAME naar betaalpauze.netlify.app). Mail loopt via mijn.host.
-- `deploy.sh`, `setup.sh` en `docs/mijnhost-deploy.md` zijn overblijfselen van de oude mijn.host-hosting en worden niet meer gebruikt.
+- Lees `docs/HOE-ZIT-HET.md` voor het volledige overzicht (accounts, DNS, wachtlijst, wat `v1/` is).
 
 ## Git en pushen (regels voor Claude Code)
 
