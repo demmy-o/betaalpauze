@@ -104,7 +104,7 @@ Tijdens de MVP werken we op de branch `mvp`. Een push naar `main` gaat meteen li
 
 ## Omgevingsvariabelen
 
-Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde negen:
+Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde tien:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -116,7 +116,10 @@ SUPABASE_SECRET_KEY=
 KVK_API_KEY=
 MAIL_TEST_MODE=
 MAIL_TEST_ADDRESS=
+WEKKER_GEHEIM=
 ```
+
+`WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus).
 
 Is een nieuwe env-var nodig? Zeg dat expliciet: die moet handmatig in Netlify worden toegevoegd, gevolgd door "Trigger deploy" (de `NEXT_PUBLIC_*` vars worden in de build ingebakken).
 

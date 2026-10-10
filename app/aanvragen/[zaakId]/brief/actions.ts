@@ -10,6 +10,7 @@ import { MAX_TOELICHTING, briefAlsTekst, maakBrief } from "@/lib/brief"
 import { maakPdf } from "@/lib/briefPdf"
 import { vervangConceptPlan } from "@/lib/planOpslaan"
 import { AFZENDER_BRIEF, verstuurMail } from "@/lib/verstuur"
+import { planBerichten } from "@/lib/wekker"
 import { BriefMail } from "@/emails/BriefMail"
 
 // Verstuurt de brief naar de schuldeiser:
@@ -97,6 +98,9 @@ export async function verstuurBrief(zaakId: string, toelichtingRuw: string): Pro
       resend_id: verzonden.id,
       verstuurd_op: new Date().toISOString(),
     })
+
+  // Alle herinneringen inplannen (lib/herinneringen.ts). De wekker verstuurt ze op de juiste dag.
+  await planBerichten(zaakId, nu)
 
   await logEvent("brief_verstuurd", zaakId, { resend_id: verzonden.id })
 

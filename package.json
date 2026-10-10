@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:rls": "node --env-file=.env.local scripts/test-rls.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "wekker": "node --env-file=.env.local scripts/wekker.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
