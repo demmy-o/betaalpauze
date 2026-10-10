@@ -56,7 +56,7 @@ export async function controleerCode(
     return { status: "fout", email, melding: "Deze code klopt niet of is verlopen. Vraag een nieuwe code aan." }
   }
 
-  redirect("/inloggen")
+  redirect("/mijn-plan")
 }
 
 export async function uitloggen() {
