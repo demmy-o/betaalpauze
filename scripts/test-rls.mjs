@@ -76,12 +76,21 @@ try {
   check("A kan een eigen zaak aanmaken", !zaakFout && zaak?.user_id === a.id)
   if (zaak) testZaken.push(zaak.id)
 
-  const { data: plan, error: planFout } = await a.client
+  // Plannen en termijnen maakt alleen de server. Voor de test zet de server er een klaar.
+  const { data: plan } = await admin
     .from("betaalplannen")
-    .insert({ zaak_id: zaak.id, soort: "termijnen", aantal_termijnen: 3 })
-    .select()
+    .insert({ zaak_id: zaak.id, soort: "termijnen", aantal_termijnen: 2 })
+    .select("id")
     .single()
-  check("A kan een betaalplan bij de eigen zaak maken", !planFout && !!plan)
+  const { data: termijn } = await admin
+    .from("termijnen")
+    .insert({ betaalplan_id: plan.id, volgnummer: 1, vervaldatum: "2026-12-01", bedrag_centen: 6250 })
+    .select("id")
+    .single()
+
+  const { data: planA } = await a.client.from("betaalplannen").select("id").eq("zaak_id", zaak.id)
+  const { data: termijnA } = await a.client.from("termijnen").select("id").eq("betaalplan_id", plan.id)
+  check("A ziet het eigen plan en de eigen termijnen", planA?.length === 1 && termijnA?.length === 1)
 
   // A ziet de eigen zaak
   const { data: zakenA } = await a.client.from("zaken").select("id").eq("id", zaak.id)
@@ -158,6 +167,33 @@ try {
     const { data: nog } = await admin.from(tabel).select("id").eq("id", id).maybeSingle()
     check(`A kan niets verwijderen uit ${tabel}`, !!nog)
   }
+
+  // betaalplannen en termijnen: lezen mag, schrijven alleen de server. Ook niet bij je eigen zaak.
+  const { error: planToevoegFout } = await a.client
+    .from("betaalplannen")
+    .insert({ zaak_id: zaak.id, soort: "pauze", versie: 3 })
+  check("A kan zelf geen betaalplan toevoegen", !!planToevoegFout)
+
+  await a.client.from("betaalplannen").update({ soort: "pauze" }).eq("id", plan.id)
+  const { data: planNa } = await admin.from("betaalplannen").select("soort").eq("id", plan.id).single()
+  check("A kan het eigen betaalplan niet aanpassen", planNa?.soort === "termijnen")
+
+  await a.client.from("betaalplannen").delete().eq("id", plan.id)
+  const { data: planNog } = await admin.from("betaalplannen").select("id").eq("id", plan.id).maybeSingle()
+  check("A kan het eigen betaalplan niet verwijderen", !!planNog)
+
+  const { error: termijnToevoegFout } = await a.client
+    .from("termijnen")
+    .insert({ betaalplan_id: plan.id, volgnummer: 2, vervaldatum: "2027-01-01", bedrag_centen: 6250 })
+  check("A kan zelf geen termijn toevoegen", !!termijnToevoegFout)
+
+  await a.client.from("termijnen").update({ status: "betaald", bedrag_centen: 1 }).eq("id", termijn.id)
+  const { data: termijnNa } = await admin.from("termijnen").select("status, bedrag_centen").eq("id", termijn.id).single()
+  check("A kan de eigen termijn niet aanpassen (status of bedrag)", termijnNa?.status === "open" && termijnNa?.bedrag_centen === 6250)
+
+  await a.client.from("termijnen").delete().eq("id", termijn.id)
+  const { data: termijnNog } = await admin.from("termijnen").select("id").eq("id", termijn.id).maybeSingle()
+  check("A kan de eigen termijn niet verwijderen", !!termijnNog)
 
   // Zonder inloggen zie je niets
   const anoniem = createClient(url, anonKey, geenSessie)

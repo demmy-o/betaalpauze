@@ -122,6 +122,63 @@ export async function markeerTermijnBetaald(
     .single()
   const alles = plan?.termijnen ?? []
   if (alles.length && alles.every((t) => t.status === "betaald")) {
-    await admin.from("zaken").update({ status: "afgerond" }).eq("id", zaakId).in("status", ["verstuurd", "akkoord"])
+    const { data: zaak } = await admin.from("zaken").select("status").eq("id", zaakId).single()
+    const { data: afgerond } = await admin
+      .from("zaken")
+      .update({ status: "afgerond" })
+      .eq("id", zaakId)
+      .in("status", ["verstuurd", "akkoord"])
+      .select("id")
+    // De vorige status bewaren, zodat "Toch niet betaald" hem kan terugzetten.
+    if (afgerond?.length) {
+      await admin
+        .from("events")
+        .insert({ user_id: userId, zaak_id: zaakId, naam: "zaak_afgerond", data: { vorige_status: zaak?.status } })
+    }
   }
+}
+
+// "Toch niet betaald" op Mijn plan: de termijn gaat terug naar nog te betalen.
+// Stond de zaak op afgerond, dan gaat hij terug naar de status van daarvoor.
+// Al verstuurde of overgeslagen herinneringen blijven zoals ze zijn; wat nog gepland
+// staat, gaat gewoon weer weg (de wekker kijkt op de dag zelf of de termijn betaald is).
+// Alleen aanroepen nadat is gecontroleerd dat de termijn bij deze gebruiker hoort.
+export async function markeerTermijnNietBetaald(termijnId: string, zaakId: string, userId: string) {
+  const admin = createAdminClient()
+
+  await admin.from("termijnen").update({ status: "open", betaald_op: null }).eq("id", termijnId).eq("status", "betaald")
+
+  const { data: zaak } = await admin.from("zaken").select("status").eq("id", zaakId).single()
+  let teruggezetNaar: string | null = null
+  if (zaak?.status === "afgerond") {
+    teruggezetNaar = await statusVoorAfronden(zaakId)
+    await admin.from("zaken").update({ status: teruggezetNaar }).eq("id", zaakId).eq("status", "afgerond")
+  }
+
+  await admin.from("events").insert({
+    user_id: userId,
+    zaak_id: zaakId,
+    naam: "termijn_toch_niet_betaald",
+    data: { termijn_id: termijnId, zaak_teruggezet_naar: teruggezetNaar },
+  })
+}
+
+// De status van een zaak vlak voor hij op afgerond ging.
+// Staat dat niet vast (zaken die eerder zijn afgerond), dan de laatst ingevulde reactie,
+// en anders "verstuurd" (wacht op reactie).
+async function statusVoorAfronden(zaakId: string): Promise<"verstuurd" | "akkoord"> {
+  const admin = createAdminClient()
+  const { data: events } = await admin
+    .from("events")
+    .select("naam, data")
+    .eq("zaak_id", zaakId)
+    .in("naam", ["zaak_afgerond", "reactie_ingevuld"])
+    .order("id", { ascending: false })
+
+  const afgerond = events?.find((e) => e.naam === "zaak_afgerond")
+  const vorige = (afgerond?.data as { vorige_status?: string } | null)?.vorige_status
+  if (vorige === "verstuurd" || vorige === "akkoord") return vorige
+
+  const reactie = (events?.find((e) => e.naam === "reactie_ingevuld")?.data as { reactie?: string } | null)?.reactie
+  return reactie === "akkoord" ? "akkoord" : "verstuurd"
 }

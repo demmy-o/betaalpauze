@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { logEvent } from "@/lib/events"
-import { markeerTermijnBetaald } from "@/lib/betaling"
+import { markeerTermijnBetaald, markeerTermijnNietBetaald } from "@/lib/betaling"
 
 export type Reactie = "akkoord" | "afgewezen" | "nog_niets"
 
@@ -52,5 +52,30 @@ export async function zetTermijnBetaald(termijnId: string): Promise<{ melding: s
   }
 
   await markeerTermijnBetaald(termijnId, plan.zaak_id, user.id, "mijn_plan")
+  revalidatePath("/mijn-plan")
+}
+
+// "Toch niet betaald" bij een betaalde termijn. Eerst met de sessie van de gebruiker
+// controleren dat de termijn bij een eigen zaak hoort die verstuurd, akkoord of afgerond is.
+export async function zetTermijnNietBetaald(termijnId: string): Promise<{ melding: string } | void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { melding: "Je bent uitgelogd. Log opnieuw in en probeer het nog eens." }
+
+  const { data: termijn } = await supabase
+    .from("termijnen")
+    .select("id, status, betaalplannen(zaak_id, zaken(status))")
+    .eq("id", termijnId)
+    .maybeSingle()
+  if (!termijn) return { melding: "We konden deze betaling niet vinden." }
+
+  const plan = termijn.betaalplannen as unknown as { zaak_id: string; zaken: { status: string } }
+  if (!["verstuurd", "akkoord", "afgerond"].includes(plan.zaken.status)) {
+    return { melding: "Bij dit plan kun je dit niet meer aanpassen." }
+  }
+
+  await markeerTermijnNietBetaald(termijnId, plan.zaak_id, user.id)
   revalidatePath("/mijn-plan")
 }

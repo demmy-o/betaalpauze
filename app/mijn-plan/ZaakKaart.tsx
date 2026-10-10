@@ -2,7 +2,7 @@ import Link from "next/link"
 import { datumLang, euro, vandaag } from "@/lib/betaalplan"
 import type { TermijnStatus, ZaakOverzicht, ZaakStatus } from "@/lib/mijnPlan"
 import { ReactieKiezen } from "./ReactieKiezen"
-import { BetaaldKnop } from "./BetaaldKnop"
+import { BetaaldKnop, TochNietBetaaldKnop } from "./BetaaldKnop"
 
 // Status altijd als tekst, met een zachte kleur erachter. Nooit alleen een kleur (docs/design.md).
 const ZAAK_STATUS: Record<ZaakStatus, { tekst: string; stijl: string }> = {
@@ -22,6 +22,7 @@ function termijnTekst(status: TermijnStatus, vervaldatum: string) {
 export function ZaakKaart({ zaak }: { zaak: ZaakOverzicht }) {
   const status = ZAAK_STATUS[zaak.status]
   const kanBetalen = zaak.status === "verstuurd" || zaak.status === "akkoord"
+  const kanTerugdraaien = kanBetalen || zaak.status === "afgerond"
 
   return (
     <article className="flex flex-col gap-5 rounded-lg border border-line bg-surface p-5">
@@ -58,6 +59,7 @@ export function ZaakKaart({ zaak }: { zaak: ZaakOverzicht }) {
                 <span className="flex items-center gap-3">
                   <span className="whitespace-nowrap text-ink">{euro(t.bedragCenten)}</span>
                   {t.status !== "betaald" && kanBetalen && <BetaaldKnop termijnId={t.id} />}
+                  {t.status === "betaald" && kanTerugdraaien && <TochNietBetaaldKnop termijnId={t.id} />}
                 </span>
               </li>
             ))}
