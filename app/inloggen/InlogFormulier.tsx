@@ -48,7 +48,7 @@ export function InlogFormulier() {
           placeholder="naam@voorbeeld.nl"
           aria-invalid={fout ? true : undefined}
           aria-describedby={fout ? "email-hulp email-fout" : "email-hulp"}
-          className="h-12 rounded-md border-line-strong bg-surface px-4 text-base text-ink placeholder:text-subtle"
+          className="h-12 rounded-md border-line-strong bg-surface px-4 focus-visible:border-line-strong focus-visible:ring-0 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet text-base text-ink placeholder:text-subtle"
         />
         {fout && (
           <p id="email-fout" className="text-sm text-error">
@@ -100,7 +100,7 @@ function CodeStap({
           autoFocus
           aria-invalid={fout ? true : undefined}
           aria-describedby={fout ? "code-hulp code-fout" : "code-hulp"}
-          className="tabular h-12 rounded-md border-line-strong bg-surface px-4 text-lg tracking-[0.3em] text-ink"
+          className="tabular h-12 rounded-md border-line-strong bg-surface px-4 focus-visible:border-line-strong focus-visible:ring-0 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet text-lg tracking-[0.3em] text-ink"
         />
         {fout && (
           <p id="code-fout" className="text-sm text-error">

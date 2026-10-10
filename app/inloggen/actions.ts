@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { magMailen } from "@/lib/mail"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -9,16 +10,6 @@ export type CodeResult =
   | { status: "idle" }
   | { status: "code_verstuurd"; email: string }
   | { status: "fout"; email?: string; melding: string }
-
-// In testmodus gaat er alleen mail naar MAIL_TEST_ADDRESS (of een +variant daarvan).
-function magMailen(email: string) {
-  if (process.env.MAIL_TEST_MODE !== "true") return true
-
-  const test = (process.env.MAIL_TEST_ADDRESS ?? "").toLowerCase()
-  const [testNaam, testDomein] = test.split("@")
-  const [naam, domein] = email.split("@")
-  return domein === testDomein && naam.split("+")[0] === testNaam
-}
 
 export async function stuurCode(
   _prev: CodeResult,
