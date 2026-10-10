@@ -10,6 +10,7 @@ export type ZaakMetPlan = {
   id: string
   bedragCenten: number
   status: string
+  schuldeiserEmail: string | null
   plan: (Plan & { aangemaakt: string }) | null
   brief: Omit<BriefGegevens, "plan" | "datum" | "toelichting"> | null
 }
@@ -26,7 +27,7 @@ export async function haalZaak(zaakId: string): Promise<ZaakMetPlan | null> {
   const { data: zaak } = await supabase
     .from("zaken")
     .select(
-      "id, factuurnummer, factuurdatum, bedrag_centen, klantnummer, status, schuldeisers(naam, straat, postcode, plaats)"
+      "id, factuurnummer, factuurdatum, bedrag_centen, klantnummer, status, schuldeiser_email, schuldeisers(naam, straat, postcode, plaats)"
     )
     .eq("id", zaakId)
     .maybeSingle()
@@ -53,6 +54,7 @@ export async function haalZaak(zaakId: string): Promise<ZaakMetPlan | null> {
     id: zaak.id,
     bedragCenten: zaak.bedrag_centen,
     status: zaak.status,
+    schuldeiserEmail: zaak.schuldeiser_email,
     plan: planRij ? naarPlan(planRij, zaak.bedrag_centen) : null,
     brief:
       profiel && schuldeiser

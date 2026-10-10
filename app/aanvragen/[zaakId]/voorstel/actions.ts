@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { vervangConceptPlan } from "@/lib/planOpslaan"
 import { controleer, rekenPlan, vandaag, type Soort } from "@/lib/betaalplan"
 
 export type VoorstelKeuze = { soort: Soort; pauzeMaanden?: number; aantalTermijnen?: number }
@@ -32,52 +32,8 @@ export async function bewaarVoorstel(zaakId: string, keuze: VoorstelKeuze): Prom
   if (fout) return { melding: fout }
   const plan = rekenPlan(volledig)
 
-  // Zolang de brief niet verstuurd is, vervangen we het concept. Pas na versturen komt er
-  // een nieuwe versie bij (bij een aanpassing). Gebruikers mogen zelf niets verwijderen,
-  // dus dit doet de server, nadat hierboven met hun eigen sessie is gecontroleerd dat de
-  // zaak van hen is en nog een concept is.
-  const admin = createAdminClient()
-  const { data: oud } = await admin
-    .from("betaalplannen")
-    .select("id, versie")
-    .eq("zaak_id", zaakId)
-    .order("versie", { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  const versie = oud?.versie ?? 1
-
-  // Eerst het nieuwe plan volledig bewaren (tijdelijk met een hoger versienummer),
-  // dan pas het oude weggooien. Zo is er nooit een moment zonder plan.
-  const { data: nieuw, error } = await admin
-    .from("betaalplannen")
-    .insert({
-      zaak_id: zaakId,
-      versie: versie + 1,
-      soort: plan.soort,
-      pauze_tot: plan.pauzeTot ?? null,
-      aantal_termijnen: plan.termijnen.length,
-    })
-    .select("id")
-    .single()
-  if (error) return { melding: "Opslaan lukte niet. Probeer het opnieuw." }
-
-  const { error: termijnFout } = await admin.from("termijnen").insert(
-    plan.termijnen.map((t) => ({
-      betaalplan_id: nieuw.id,
-      volgnummer: t.volgnummer,
-      vervaldatum: t.vervaldatum,
-      bedrag_centen: t.bedragCenten,
-    }))
-  )
-  if (termijnFout) {
-    await admin.from("betaalplannen").delete().eq("id", nieuw.id)
-    return { melding: "Opslaan lukte niet. Probeer het opnieuw." }
-  }
-
-  if (oud) {
-    await admin.from("betaalplannen").delete().eq("id", oud.id) // termijnen gaan mee
-    await admin.from("betaalplannen").update({ versie }).eq("id", nieuw.id)
-  }
+  // Zolang de brief niet verstuurd is, vervangen we het concept.
+  if (!(await vervangConceptPlan(zaakId, plan))) return { melding: "Opslaan lukte niet. Probeer het opnieuw." }
 
   await supabase.from("events").insert({ zaak_id: zaakId, naam: "voorstel_gekozen", data: { ...keuze } })
 

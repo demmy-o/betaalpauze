@@ -18,13 +18,19 @@ export default async function BriefPagina({ params }: { params: Promise<{ zaakId
 
   const zaak = await haalZaak(zaakId)
   if (!zaak?.brief) notFound()
+  if (zaak.status !== "concept") redirect(`/aanvragen/${zaakId}/verstuurd`)
   if (!zaak.plan) redirect(`/aanvragen/${zaakId}/voorstel`)
+  if (!zaak.schuldeiserEmail) redirect("/aanvragen?stap=1")
 
   return (
     <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
       <div className="mx-auto flex max-w-prose flex-col gap-8">
         <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
-        <BriefBekijken zaakId={zaak.id} gegevens={{ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt }} />
+        <BriefBekijken
+          zaakId={zaak.id}
+          schuldeiserEmail={zaak.schuldeiserEmail}
+          gegevens={{ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt }}
+        />
       </div>
     </main>
   )
