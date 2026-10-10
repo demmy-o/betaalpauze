@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react"
 import type { Factuur, Gegevens, Schuldeiser } from "./schema"
 
 export type Antwoorden = {
+  factuurKlopt?: boolean
   schuldeiser?: Schuldeiser
   factuur?: Factuur
   gegevens?: Gegevens

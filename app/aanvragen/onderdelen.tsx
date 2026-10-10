@@ -7,20 +7,34 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 
-export const AANTAL_STAPPEN = 4
+// Stap 1 t/m 4: het formulier. Stap 5: je voorstel. Stap 6: je brief.
+export const AANTAL_STAPPEN = 6
 
-// Bovenaan elke stap: terug-link, "Stap X van 4" en een balk.
-export function StapKop({ stap, titel, uitleg }: { stap: number; titel: string; uitleg?: string }) {
-  const vorige = stap > 1 ? `/aanvragen?stap=${stap - 1}` : "/"
+// Bovenaan elke stap: terug-link, "Stap X van 6" en een balk.
+// Zonder "terug" gaat de link naar de vorige stap van het formulier. Met terug={null} is er geen link.
+export function StapKop({
+  stap,
+  titel,
+  uitleg,
+  terug,
+}: {
+  stap: number
+  titel: string
+  uitleg?: string
+  terug?: string | null
+}) {
+  const vorige = terug === undefined ? `/aanvragen?stap=${stap - 1}` : terug
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href={vorige}
-        className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
-      >
-        Terug
-      </Link>
+      {vorige && (
+        <Link
+          href={vorige}
+          className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
+        >
+          Terug
+        </Link>
+      )}
 
       <div className="flex flex-col gap-2">
         <p className="text-sm text-muted-foreground">

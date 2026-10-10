@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { bewaarAntwoorden, useAntwoorden, wisAntwoorden, type Antwoorden } from "./opslag"
+import { VraagFactuur } from "./VraagFactuur"
 import { StapSchuldeiser } from "./StapSchuldeiser"
 import { StapFactuur } from "./StapFactuur"
 import { StapGegevens } from "./StapGegevens"
 import { StapEmail } from "./StapEmail"
 
 // De verste stap waar je mag zijn: je kunt geen stap overslaan.
+// Stap 0 is de vraag "Klopt de factuur?".
 function verstToegestaan(a: Antwoorden) {
+  if (!a.factuurKlopt) return 0
   if (!a.schuldeiser) return 1
   if (!a.factuur) return 2
   if (!a.gegevens) return 3
@@ -22,8 +25,8 @@ export function Aanvraag() {
   const antwoorden = useAntwoorden()
   const [zaakId, setZaakId] = useState<string>()
 
-  const gevraagd = Number(zoekParams.get("stap") ?? "1")
-  const stap = antwoorden ? Math.min(Math.max(gevraagd, 1), verstToegestaan(antwoorden)) : 1
+  const gevraagd = Number(zoekParams.get("stap") ?? "0")
+  const stap = antwoorden ? Math.min(Math.max(gevraagd, 0), verstToegestaan(antwoorden)) : 0
 
   // Probeer je een stap over te slaan, dan ga je naar de stap die nog open staat.
   useEffect(() => {
@@ -38,6 +41,16 @@ export function Aanvraag() {
     window.scrollTo({ top: 0 })
   }
 
+  if (stap === 0) {
+    return (
+      <VraagFactuur
+        onKlopt={() => {
+          bewaarAntwoorden({ factuurKlopt: true })
+          naarStap(1)
+        }}
+      />
+    )
+  }
   if (stap === 1) {
     return (
       <StapSchuldeiser
@@ -81,24 +94,16 @@ export function Aanvraag() {
       onCodeVerstuurd={(email, tijd) => bewaarAntwoorden({ email, codeVerstuurd: { email, tijd } })}
       onAnderAdres={() => bewaarAntwoorden({ codeVerstuurd: undefined, laatsteCode: antwoorden.codeVerstuurd })}
       onKlaar={(id) => {
+        // Zaak bewaard: door naar scherm 5, je voorstel.
         setZaakId(id)
         wisAntwoorden()
-        window.scrollTo({ top: 0 })
+        router.push(`/aanvragen/${id}/voorstel`)
       }}
     />
   )
 }
 
+// Kort zichtbaar terwijl we naar scherm 5 gaan.
 function Bewaard() {
-  return (
-    <section className="flex flex-col gap-4 rounded-lg bg-mint-soft p-6">
-      <h1 className="text-h2 text-ink">Je gegevens zijn bewaard</h1>
-      <p className="text-base text-ink">
-        We hebben je factuur en je gegevens opgeslagen. Je bent nu ingelogd.
-      </p>
-      <p className="text-base text-ink">
-        Hierna kies je je voorstel: een pauze, termijnen of allebei. Dat deel komt hier binnenkort.
-      </p>
-    </section>
-  )
+  return <p className="text-base text-muted-foreground">Je gegevens zijn bewaard. Even geduld...</p>
 }

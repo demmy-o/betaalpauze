@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // De PDF-bibliotheek draait als gewone Node-module op de server, niet gebundeld.
+  serverExternalPackages: ["@react-pdf/renderer"],
 };
 
 export default nextConfig;
