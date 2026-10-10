@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { stuurAanvraagCode } from "./actions"
 import { bewaarAntwoorden, useAntwoorden, wisAntwoorden, type Antwoorden } from "./opslag"
-import type { Gegevens } from "./schema"
 import { StapSchuldeiser } from "./StapSchuldeiser"
 import { StapFactuur } from "./StapFactuur"
 import { StapGegevens } from "./StapGegevens"
-import { StapCode } from "./StapCode"
-
-const OPNIEUW_NA_MS = 60 * 1000 // Supabase stuurt maximaal één code per minuut
+import { StapEmail } from "./StapEmail"
 
 // De verste stap waar je mag zijn: je kunt geen stap overslaan.
 function verstToegestaan(a: Antwoorden) {
@@ -42,23 +38,6 @@ export function Aanvraag() {
     window.scrollTo({ top: 0 })
   }
 
-  // Na stap 3 sturen we de code. Lukt dat niet, dan blijf je op stap 3 en zie je waarom.
-  async function gegevensKlaar(gegevens: Gegevens): Promise<string | undefined> {
-    const vorige = antwoorden?.codeVerstuurd
-    const netVerstuurd = vorige?.email === gegevens.email && Date.now() - vorige.tijd < OPNIEUW_NA_MS
-
-    if (!netVerstuurd) {
-      const uitkomst = await stuurAanvraagCode(gegevens.email)
-      if (!uitkomst.ok) return uitkomst.melding
-    }
-
-    bewaarAntwoorden({
-      gegevens,
-      codeVerstuurd: netVerstuurd ? vorige : { email: gegevens.email, tijd: Date.now() },
-    })
-    naarStap(4)
-  }
-
   if (stap === 1) {
     return (
       <StapSchuldeiser
@@ -82,13 +61,25 @@ export function Aanvraag() {
     )
   }
   if (stap === 3) {
-    return <StapGegevens begin={antwoorden.gegevens} onVerder={gegevensKlaar} />
+    return (
+      <StapGegevens
+        begin={antwoorden.gegevens}
+        onVerder={(gegevens) => {
+          bewaarAntwoorden({ gegevens })
+          naarStap(4)
+        }}
+      />
+    )
   }
 
   return (
-    <StapCode
+    <StapEmail
       aanvraag={{ schuldeiser: antwoorden.schuldeiser!, factuur: antwoorden.factuur!, gegevens: antwoorden.gegevens! }}
-      onNieuweCode={() => bewaarAntwoorden({ codeVerstuurd: { email: antwoorden.gegevens!.email, tijd: Date.now() } })}
+      beginEmail={antwoorden.email}
+      codeVerstuurd={antwoorden.codeVerstuurd}
+      laatsteCode={antwoorden.laatsteCode}
+      onCodeVerstuurd={(email, tijd) => bewaarAntwoorden({ email, codeVerstuurd: { email, tijd } })}
+      onAnderAdres={() => bewaarAntwoorden({ codeVerstuurd: undefined, laatsteCode: antwoorden.codeVerstuurd })}
       onKlaar={(id) => {
         setZaakId(id)
         wisAntwoorden()

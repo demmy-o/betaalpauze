@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { zoekBedrijven } from "@/lib/kvk"
-import { createAdminClient } from "@/lib/supabase/admin"
 
 // GET /api/kvk?q=naam
-// Zoekt bedrijven bij de KVK. Kennen we het bedrijf al (tabel schuldeisers),
-// dan sturen we het e-mailadres mee, zodat de gebruiker dat niet hoeft te zoeken.
+// Zoekt bedrijven bij de KVK (gratis). Het volledige adres en een bekend
+// e-mailadres komen pas als iemand een bedrijf kiest, via /api/kvk/adres.
 export async function GET(request: NextRequest) {
   const term = (request.nextUrl.searchParams.get("q") ?? "").trim()
 
@@ -14,23 +13,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const bedrijven = await zoekBedrijven(term)
-
-    const nummers = bedrijven.map((b) => b.kvkNummer)
-    const bekend = new Map<string, string>()
-    if (nummers.length > 0) {
-      const { data } = await createAdminClient()
-        .from("schuldeisers")
-        .select("kvk_nummer, email")
-        .in("kvk_nummer", nummers)
-        .eq("onbestelbaar", false)
-        .not("email", "is", null)
-      for (const rij of data ?? []) bekend.set(rij.kvk_nummer, rij.email)
-    }
-
-    return NextResponse.json({
-      bedrijven: bedrijven.map((b) => ({ ...b, bekendEmail: bekend.get(b.kvkNummer) })),
-    })
+    return NextResponse.json({ bedrijven: await zoekBedrijven(term) })
   } catch {
     return NextResponse.json({ fout: "Zoeken bij de KVK lukt nu even niet." }, { status: 502 })
   }

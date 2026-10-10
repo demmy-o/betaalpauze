@@ -1,46 +1,30 @@
 "use client"
 
-import { useState, useTransition } from "react"
 import { gegevensSchema, type Gegevens } from "./schema"
 import { FoutSamenvatting, StapKop, Veld, VerderKnop, useStapFormulier } from "./onderdelen"
 
-// Stap 3: wie stuurt het voorstel?
-// onVerder stuurt de code. Geeft die een melding terug, dan blijf je hier.
-export function StapGegevens({
-  begin,
-  onVerder,
-}: {
-  begin?: Gegevens
-  onVerder: (g: Gegevens) => Promise<string | undefined>
-}) {
-  const [serverFout, setServerFout] = useState<string>()
-  const [bezig, startBezig] = useTransition()
+// Stap 3: je naam en adres. Die komen in de brief.
+export function StapGegevens({ begin, onVerder }: { begin?: Gegevens; onVerder: (g: Gegevens) => void }) {
   const formulier = useStapFormulier(gegevensSchema, {
     voornaam: begin?.voornaam ?? "",
     achternaam: begin?.achternaam ?? "",
     straat: begin?.straat ?? "",
     postcode: begin?.postcode ?? "",
     plaats: begin?.plaats ?? "",
-    email: begin?.email ?? "",
   })
   const { waarden, fouten, zet, verlaten } = formulier
 
   function verstuur(e: React.FormEvent) {
     e.preventDefault()
     const data = formulier.controleerAlles()
-    if (!data) return
-    setServerFout(undefined)
-    startBezig(async () => {
-      const melding = await onVerder(data)
-      if (melding) setServerFout(melding)
-    })
+    if (data) onVerder(data)
   }
 
   return (
     <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
       <StapKop
         stap={3}
-        titel="Jouw gegevens"
+        titel="Jouw naam en adres"
         uitleg="Deze gegevens komen in de brief, zodat het bedrijf weet van wie het voorstel is."
       />
 
@@ -93,27 +77,9 @@ export function StapGegevens({
           onWaarde={(w) => zet("plaats", w)}
           onVerlaten={() => verlaten("plaats")}
         />
-        <Veld
-          id="email"
-          label="Jouw e-mailadres"
-          hulp="Hier sturen we een code naartoe, en straks een kopie van de brief."
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          waarde={waarden.email}
-          fout={fouten.email}
-          onWaarde={(w) => zet("email", w)}
-          onVerlaten={() => verlaten("email")}
-        />
       </div>
 
-      {serverFout && (
-        <p role="alert" className="rounded-lg bg-error-tint p-4 text-sm text-ink">
-          {serverFout}
-        </p>
-      )}
-
-      <VerderKnop bezig={bezig}>{bezig ? "Code wordt verstuurd..." : "Stuur mij een code"}</VerderKnop>
+      <VerderKnop>Verder naar je e-mailadres</VerderKnop>
     </form>
   )
 }

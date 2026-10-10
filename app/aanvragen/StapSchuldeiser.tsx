@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { schuldeiserSchema, type Schuldeiser } from "./schema"
 import { FoutSamenvatting, StapKop, Veld, VerderKnop, useStapFormulier } from "./onderdelen"
 
-type Bedrijf = { kvkNummer: string; naam: string; straat?: string; plaats?: string; bekendEmail?: string }
+type Bedrijf = { kvkNummer: string; vestigingsnummer?: string; naam: string; straat?: string; plaats?: string }
 
 const MIN_TEKENS = 3
 const WACHTTIJD_MS = 300
@@ -17,32 +17,58 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
     kvkNummer: begin?.kvkNummer ?? "",
     naam: begin?.naam ?? "",
     straat: begin?.straat ?? "",
+    postcode: begin?.postcode ?? "",
     plaats: begin?.plaats ?? "",
     email: begin?.email ?? "",
   })
   const { waarden, fouten, zet } = formulier
   const gekozen = waarden.kvkNummer !== ""
+  const [adresLaden, setAdresLaden] = useState(false)
+  const [adresFout, setAdresFout] = useState<string>()
 
-  function kies(b: Bedrijf) {
+  // Bij kiezen halen we het volledige adres op (en een e-mailadres als we het bedrijf al kennen).
+  async function kies(b: Bedrijf) {
     zet("kvkNummer", b.kvkNummer)
     zet("naam", b.naam)
     zet("straat", b.straat ?? "")
+    zet("postcode", "")
     zet("plaats", b.plaats ?? "")
-    if (b.bekendEmail && !waarden.email) zet("email", b.bekendEmail)
+    setAdresFout(undefined)
+    setAdresLaden(true)
+
+    try {
+      const antwoord = await fetch("/api/kvk/adres", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kvkNummer: b.kvkNummer }),
+      })
+      const data = await antwoord.json()
+      if (!antwoord.ok) throw new Error(data.fout)
+      zet("straat", data.adres.straat ?? "")
+      zet("postcode", data.adres.postcode ?? "")
+      zet("plaats", data.adres.plaats ?? "")
+      if (data.bekendEmail && !waarden.email) zet("email", data.bekendEmail)
+    } catch {
+      setAdresFout("Het volledige adres ophalen lukte niet. Je kunt gewoon verder, we proberen het later opnieuw.")
+    } finally {
+      setAdresLaden(false)
+    }
   }
 
   function kiesOpnieuw() {
     zet("kvkNummer", "")
     zet("naam", "")
     zet("straat", "")
+    zet("postcode", "")
     zet("plaats", "")
+    setAdresFout(undefined)
   }
 
   function verstuur(e: React.FormEvent) {
     e.preventDefault()
     // Nog geen bedrijf gekozen? Dan staat het e-mailveld nog niet op het scherm.
     const data = formulier.controleerAlles(gekozen ? undefined : ["kvkNummer"])
-    if (data) onVerder(data)
+    if (data && !adresLaden) onVerder(data)
   }
 
   return (
@@ -60,7 +86,10 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
           naam={waarden.naam}
           kvkNummer={waarden.kvkNummer}
           straat={waarden.straat}
+          postcode={waarden.postcode}
           plaats={waarden.plaats}
+          laden={adresLaden}
+          fout={adresFout}
           onOpnieuw={kiesOpnieuw}
         />
       ) : (
@@ -83,7 +112,7 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
         />
       )}
 
-      <VerderKnop>Verder naar de factuur</VerderKnop>
+      <VerderKnop bezig={adresLaden}>Verder naar de factuur</VerderKnop>
     </form>
   )
 }
@@ -186,22 +215,40 @@ function GekozenBedrijf({
   naam,
   kvkNummer,
   straat,
+  postcode,
   plaats,
+  laden,
+  fout,
   onOpnieuw,
 }: {
   naam: string
   kvkNummer: string
   straat?: string
+  postcode?: string
   plaats?: string
+  laden: boolean
+  fout?: string
   onOpnieuw: () => void
 }) {
   return (
     <div className="flex flex-col gap-3 rounded-lg bg-lilac-soft p-5">
       <p className="text-sm text-muted-foreground">Gekozen bedrijf</p>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1" aria-live="polite">
         <p className="text-lg font-medium text-ink">{naam}</p>
         <p className="text-sm text-muted-foreground">KVK {kvkNummer}</p>
-        {plaats && <p className="text-sm text-muted-foreground">{[straat, plaats].filter(Boolean).join(", ")}</p>}
+        {laden ? (
+          // Reserveer de hoogte van twee adresregels, zodat de pagina niet verspringt.
+          <div className="flex flex-col gap-1" aria-label="Adres wordt opgehaald">
+            <div className="h-5 w-40 animate-pulse rounded-sm bg-line [animation-duration:1.5s]" />
+            <div className="h-5 w-28 animate-pulse rounded-sm bg-line [animation-duration:1.5s]" />
+          </div>
+        ) : (
+          <>
+            {straat && <p className="text-sm text-ink">{straat}</p>}
+            {(postcode || plaats) && <p className="text-sm text-ink">{[postcode, plaats].filter(Boolean).join(" ")}</p>}
+          </>
+        )}
+        {fout && <p className="text-sm text-muted-foreground">{fout}</p>}
       </div>
       <button
         type="button"

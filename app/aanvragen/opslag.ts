@@ -7,7 +7,9 @@ export type Antwoorden = {
   schuldeiser?: Schuldeiser
   factuur?: Factuur
   gegevens?: Gegevens
+  email?: string
   codeVerstuurd?: { email: string; tijd: number }
+  laatsteCode?: { email: string; tijd: number } // bewaard bij "ander e-mailadres"
 }
 
 // Antwoorden blijven bewaard in dit tabblad (sessionStorage), ook bij teruggaan of herladen.

@@ -6,6 +6,7 @@ export const schuldeiserSchema = z.object({
   kvkNummer: z.string().regex(/^\d{8}$/, "Kies een bedrijf uit de lijst."),
   naam: z.string().min(1, "Kies een bedrijf uit de lijst."),
   straat: z.string().optional(),
+  postcode: z.string().optional(),
   plaats: z.string().optional(),
   email: z
     .string()
@@ -49,6 +50,9 @@ export const gegevensSchema = z.object({
     .trim()
     .regex(/^\d{4}\s?[a-zA-Z]{2}$/, "Een postcode heeft 4 cijfers en 2 letters, zoals 1234 AB."),
   plaats: z.string().trim().min(2, "Vul je woonplaats in."),
+})
+
+export const emailSchema = z.object({
   email: z
     .string()
     .trim()
@@ -60,6 +64,7 @@ export const aanvraagSchema = z.object({
   schuldeiser: schuldeiserSchema,
   factuur: factuurSchema,
   gegevens: gegevensSchema,
+  email: emailSchema.shape.email,
 })
 
 export type Schuldeiser = z.infer<typeof schuldeiserSchema>
