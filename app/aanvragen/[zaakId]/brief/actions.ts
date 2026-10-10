@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { logEvent } from "@/lib/events"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { haalZaak } from "@/lib/zaak"
 import { rekenPlan, vandaag } from "@/lib/betaalplan"
@@ -40,10 +41,13 @@ export async function verstuurBrief(zaakId: string, toelichtingRuw: string): Pro
   }
 
   const supabase = await createClient()
+  // De status mag alleen de server zetten. haalZaak hierboven heeft met de sessie van
+  // de gebruiker al gecontroleerd dat deze zaak van hem is.
+  const admin = createAdminClient()
 
   // Zet de zaak eerst op verstuurd. Lukt dat niet, dan is hij al verstuurd
   // (bijvoorbeeld door twee keer klikken). Zo gaat de brief nooit twee keer weg.
-  const { data: vergrendeld } = await supabase
+  const { data: vergrendeld } = await admin
     .from("zaken")
     .update({ status: "verstuurd", verstuurd_op: new Date().toISOString() })
     .eq("id", zaakId)
@@ -69,7 +73,7 @@ export async function verstuurBrief(zaakId: string, toelichtingRuw: string): Pro
 
   if ("fout" in verzonden) {
     // Terug naar concept, zodat de gebruiker het opnieuw kan proberen.
-    await supabase.from("zaken").update({ status: "concept", verstuurd_op: null }).eq("id", zaakId)
+    await admin.from("zaken").update({ status: "concept", verstuurd_op: null }).eq("id", zaakId)
     console.error("Brief versturen mislukt:", verzonden.fout)
     return { melding: "Versturen lukte niet. Probeer het over een paar minuten opnieuw." }
   }
@@ -83,7 +87,7 @@ export async function verstuurBrief(zaakId: string, toelichtingRuw: string): Pro
     .limit(1)
     .single()
 
-  await createAdminClient()
+  await admin
     .from("brieven")
     .insert({
       zaak_id: zaakId,
@@ -94,7 +98,7 @@ export async function verstuurBrief(zaakId: string, toelichtingRuw: string): Pro
       verstuurd_op: new Date().toISOString(),
     })
 
-  await supabase.from("events").insert({ zaak_id: zaakId, naam: "brief_verstuurd", data: { resend_id: verzonden.id } })
+  await logEvent("brief_verstuurd", zaakId, { resend_id: verzonden.id })
 
   redirect(`/aanvragen/${zaakId}/verstuurd`)
 }

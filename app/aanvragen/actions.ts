@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { logEvent } from "@/lib/events"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { magMailen } from "@/lib/mail"
 import { zoekOpNummer } from "@/lib/kvk"
@@ -106,7 +107,7 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
     .single()
   if (zaakFout) return { ok: false, melding: "Opslaan lukte niet. Probeer het opnieuw." }
 
-  await supabase.from("events").insert({ zaak_id: zaak.id, naam: "aanvraag_stap4_bevestigd" })
+  await logEvent("aanvraag_stap4_bevestigd", zaak.id)
 
   return { ok: true, zaakId: zaak.id }
 }

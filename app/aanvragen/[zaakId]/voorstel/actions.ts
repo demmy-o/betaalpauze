@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { logEvent } from "@/lib/events"
 import { vervangConceptPlan } from "@/lib/planOpslaan"
 import { controleer, rekenPlan, vandaag, type Soort } from "@/lib/betaalplan"
 
@@ -35,7 +36,7 @@ export async function bewaarVoorstel(zaakId: string, keuze: VoorstelKeuze): Prom
   // Zolang de brief niet verstuurd is, vervangen we het concept.
   if (!(await vervangConceptPlan(zaakId, plan))) return { melding: "Opslaan lukte niet. Probeer het opnieuw." }
 
-  await supabase.from("events").insert({ zaak_id: zaakId, naam: "voorstel_gekozen", data: { ...keuze } })
+  await logEvent("voorstel_gekozen", zaakId, { ...keuze })
 
   redirect(`/aanvragen/${zaakId}/brief`)
 }
