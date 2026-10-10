@@ -14,7 +14,7 @@ export type ZaakOverzicht = {
   bedragCenten: number
   status: ZaakStatus
   verstuurdOp: string | null
-  termijnen: { volgnummer: number; vervaldatum: string; bedragCenten: number; status: TermijnStatus }[]
+  termijnen: { id: string; volgnummer: number; vervaldatum: string; bedragCenten: number; status: TermijnStatus }[]
   brief: { tekst: string; verstuurdOp: string | null } | null
 }
 
@@ -27,7 +27,7 @@ type Rij = {
   schuldeisers: { naam: string } | { naam: string }[] | null
   betaalplannen: {
     versie: number
-    termijnen: { volgnummer: number; vervaldatum: string; bedrag_centen: number; status: TermijnStatus }[]
+    termijnen: { id: string; volgnummer: number; vervaldatum: string; bedrag_centen: number; status: TermijnStatus }[]
   }[]
   brieven: { tekst: string; verstuurd_op: string | null; created_at: string }[]
 }
@@ -39,7 +39,7 @@ export async function haalMijnZaken(): Promise<ZaakOverzicht[]> {
     .select(
       `id, factuurnummer, bedrag_centen, status, verstuurd_op,
        schuldeisers(naam),
-       betaalplannen(versie, termijnen(volgnummer, vervaldatum, bedrag_centen, status)),
+       betaalplannen(versie, termijnen(id, volgnummer, vervaldatum, bedrag_centen, status)),
        brieven(tekst, verstuurd_op, created_at)`
     )
     .order("created_at", { ascending: false })
@@ -58,7 +58,7 @@ export async function haalMijnZaken(): Promise<ZaakOverzicht[]> {
       verstuurdOp: z.verstuurd_op,
       termijnen: (plan?.termijnen ?? [])
         .sort((a, b) => a.volgnummer - b.volgnummer)
-        .map((t) => ({ volgnummer: t.volgnummer, vervaldatum: t.vervaldatum, bedragCenten: t.bedrag_centen, status: t.status })),
+        .map((t) => ({ id: t.id, volgnummer: t.volgnummer, vervaldatum: t.vervaldatum, bedragCenten: t.bedrag_centen, status: t.status })),
       brief: brief ? { tekst: brief.tekst, verstuurdOp: brief.verstuurd_op } : null,
     }
   })

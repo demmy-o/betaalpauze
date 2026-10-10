@@ -4,6 +4,7 @@ import { plusDagen } from "@/lib/betaalplan"
 import { HERINNERINGEN, STATUS_MET_HERINNERINGEN, berekenBerichten, type Template } from "@/lib/herinneringen"
 import { herinneringTekst } from "@/lib/herinneringTeksten"
 import { verstuurMail } from "@/lib/verstuur"
+import { maakToken } from "@/lib/betaling"
 import { HerinneringMail } from "@/emails/HerinneringMail"
 
 const AFZENDER = "herinnering@betaalpauze.nl"
@@ -101,11 +102,14 @@ export async function draaiWekker(datum: string, basisUrl: string): Promise<Uits
       continue
     }
 
+    // Bij "heb je betaald?" krijgen de ja/nee-knoppen een eenmalige code (lib/betaling.ts).
+    const code = b.template === "heb-je-betaald" && termijn ? maakToken() : null
+
     // Eerst afvinken, dan versturen. Zo gaat een bericht nooit twee keer weg,
     // ook niet als de wekker per ongeluk twee keer draait.
     const { data: geclaimd } = await admin
       .from("berichten")
-      .update({ status: "verstuurd", verstuurd_op: new Date().toISOString() })
+      .update({ status: "verstuurd", verstuurd_op: new Date().toISOString(), ...(code && { token_hash: code.hash }) })
       .eq("id", b.id)
       .eq("status", "gepland")
       .select("id")
@@ -130,6 +134,9 @@ export async function draaiWekker(datum: string, basisUrl: string): Promise<Uits
         bedragCenten: termijn.bedrag_centen,
       },
       mijnPlanUrl: `${basisUrl}/mijn-plan`,
+      betaaldUrls: code
+        ? { ja: `${basisUrl}/betaald/${code.token}?antwoord=ja`, nee: `${basisUrl}/betaald/${code.token}?antwoord=nee` }
+        : undefined,
     })
 
     const verzonden = ontvanger.email
@@ -139,7 +146,7 @@ export async function draaiWekker(datum: string, basisUrl: string): Promise<Uits
           aan: ontvanger.email,
           onderwerp: inhoud.onderwerp,
           react: HerinneringMail({ inhoud }),
-          tekst: [...inhoud.alineas, `${inhoud.knop.tekst}: ${inhoud.knop.url}`].join("\n\n"),
+          tekst: [...inhoud.alineas, ...inhoud.knoppen.map((k) => `${k.tekst}: ${k.url}`)].join("\n\n"),
         })
       : { fout: "geen e-mailadres" }
 

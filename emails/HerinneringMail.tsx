@@ -18,22 +18,26 @@ export function HerinneringMail({ inhoud }: { inhoud: HerinneringTekst }) {
             </Text>
           ))}
 
-          <Button
-            href={inhoud.knop.url}
-            style={{
-              backgroundColor: "#1c1b2e",
-              color: "#ffffff",
-              borderRadius: "999px",
-              padding: "14px 24px",
-              fontSize: "16px",
-              fontWeight: 500,
-              textDecoration: "none",
-              display: "inline-block",
-              margin: "8px 0 24px",
-            }}
-          >
-            {inhoud.knop.tekst}
-          </Button>
+          {inhoud.knoppen.map((knop) => (
+            <Button
+              key={knop.url}
+              href={knop.url}
+              style={{
+                backgroundColor: knop.soort === "primair" ? "#1c1b2e" : "#ffffff",
+                color: knop.soort === "primair" ? "#ffffff" : "#1c1b2e",
+                border: "1px solid #1c1b2e",
+                borderRadius: "999px",
+                padding: "14px 24px",
+                fontSize: "16px",
+                fontWeight: 500,
+                textDecoration: "none",
+                display: "inline-block",
+                margin: "8px 8px 16px 0",
+              }}
+            >
+              {knop.tekst}
+            </Button>
+          ))}
 
           <Hr style={{ borderColor: "#e3e1ec", margin: "8px 0 16px" }} />
           <Text style={{ fontSize: "13px", lineHeight: "1.5", color: "#55536b", margin: 0 }}>

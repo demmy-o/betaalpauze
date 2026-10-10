@@ -11,16 +11,19 @@ export type HerinneringGegevens = {
   eersteBetaling: string // "JJJJ-MM-DD"
   termijn?: { volgnummer: number; aantal: number; vervaldatum: string; bedragCenten: number }
   mijnPlanUrl: string
+  betaaldUrls?: { ja: string; nee: string } // alleen bij "heb-je-betaald"
 }
+
+export type Knop = { tekst: string; url: string; soort: "primair" | "secundair" }
 
 export type HerinneringTekst = {
   onderwerp: string
   alineas: string[]
-  knop: { tekst: string; url: string }
+  knoppen: Knop[]
 }
 
 export function herinneringTekst(template: Template, g: HerinneringGegevens): HerinneringTekst {
-  const knop = { tekst: "Naar Mijn plan", url: g.mijnPlanUrl }
+  const knop: Knop[] = [{ tekst: "Naar Mijn plan", url: g.mijnPlanUrl, soort: "primair" }]
   const groet = `Hoi ${g.voornaam},`
   const t = g.termijn
   const welke = t && t.aantal > 1 ? ` Dat is betaling ${t.volgnummer} van ${t.aantal}.` : ""
@@ -34,7 +37,7 @@ export function herinneringTekst(template: Template, g: HerinneringGegevens): He
           `Twee weken geleden stuurde je je betaalvoorstel naar ${g.schuldeiser}. Heb je al antwoord gekregen? Laat het ons weten op Mijn plan.`,
           `Nog niets gehoord? Dat gebeurt vaak. Zoals in je brief staat, begin je op ${datumLang(g.eersteBetaling)} gewoon met betalen.`,
         ],
-        knop,
+        knoppen: knop,
       }
 
     case "termijn-komt-eraan":
@@ -45,7 +48,7 @@ export function herinneringTekst(template: Template, g: HerinneringGegevens): He
           `Op ${datumLang(t!.vervaldatum)} betaal je ${euro(t!.bedragCenten)} aan ${g.schuldeiser}.${welke}`,
           "Zorg dat het geld die dag op je rekening staat. Wij sturen je op de dag zelf nog een mail.",
         ],
-        knop,
+        knoppen: knop,
       }
 
     case "vandaag-betalen":
@@ -56,7 +59,7 @@ export function herinneringTekst(template: Template, g: HerinneringGegevens): He
           `Vandaag betaal je ${euro(t!.bedragCenten)} aan ${g.schuldeiser}.${welke}`,
           `Betaal via je eigen bank. Gebruik het rekeningnummer en het kenmerk van de factuur, en zet factuurnummer ${g.factuurnummer} in de omschrijving.`,
         ],
-        knop,
+        knoppen: knop,
       }
 
     case "heb-je-betaald":
@@ -64,10 +67,15 @@ export function herinneringTekst(template: Template, g: HerinneringGegevens): He
         onderwerp: `Is je betaling aan ${g.schuldeiser} gelukt?`,
         alineas: [
           groet,
-          `Op ${datumLang(t!.vervaldatum)} moest je ${euro(t!.bedragCenten)} betalen aan ${g.schuldeiser}. Is dat gelukt? Laat het ons weten op Mijn plan.`,
-          "Lukte het niet? Dat kan gebeuren. Laat het ons weten, dan kijken we samen wat wel kan.",
+          `Op ${datumLang(t!.vervaldatum)} moest je ${euro(t!.bedragCenten)} betalen aan ${g.schuldeiser}. Is dat gelukt?`,
+          "Lukte het niet? Dat kan gebeuren. Klik dan op nee, dan laten we zien wat je kunt doen.",
         ],
-        knop,
+        knoppen: g.betaaldUrls
+          ? [
+              { tekst: "Ja, ik heb betaald", url: g.betaaldUrls.ja, soort: "primair" },
+              { tekst: "Nee, nog niet", url: g.betaaldUrls.nee, soort: "secundair" },
+            ]
+          : knop,
       }
 
     case "klaar":
@@ -78,7 +86,7 @@ export function herinneringTekst(template: Template, g: HerinneringGegevens): He
           `Je laatste betaling aan ${g.schuldeiser} is net geweest. Als alles gelukt is, heb je je afspraak helemaal nagekomen.`,
           "Laat ons op Mijn plan weten of het gelukt is. Daarna sluiten we je plan af.",
         ],
-        knop,
+        knoppen: knop,
       }
   }
 }
