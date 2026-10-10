@@ -69,20 +69,42 @@ De site draait op **Netlify** (project `betaalpauze`, gekoppeld aan deze GitHub-
 - DNS staat bij mijn.host (A-record naar Netlify, www CNAME naar betaalpauze.netlify.app). Mail loopt via mijn.host.
 - Lees `docs/HOE-ZIT-HET.md` voor het volledige overzicht (accounts, DNS, wachtlijst, wat `v1/` is).
 
+## Bouwen aan de MVP (spelregels voor Claude Code)
+
+Wat we bouwen staat in `docs/mvp-v1.md`. De tickets staan in Notion: database Roadmap, weergave MVP-sprint.
+
+Hoe het eruitziet staat in `docs/design.md` (regels voor kleur, copy, formulieren, states en motion). De tokens staan in `app/globals.css`. `docs/design-tokens.css` is alleen de referentie, niet importeren. Twee namen uit `design.md` heten in de code anders, omdat shadcn ze al gebruikt:
+
+- design `muted` (tekstkleur) is `text-muted-foreground`
+- design `accent` (violet) is `violet`, `violet-strong` en `violet-tint`
+
+1. **Eén stap tegelijk.** Werk aan één ticket en begin niet aan het volgende.
+2. **Na elke stap testen in de browser.** Gebruik Playwright op http://localhost:3000 en kijk of het werkt zoals het ticket zegt.
+3. **Daarna stoppen voor akkoord.** Laat zien wat je gedaan en getest hebt, en wacht tot Demmy akkoord geeft.
+4. **Nooit `.env` committen.** Geen `.env*`, `node_modules`, `.next` of losse zip-bestanden.
+5. **Mail altijd in testmodus.** Verstuur geen echte mail naar schuldeisers of gebruikers zolang de testmodus aan staat.
+6. **Na elk ticket het ticket in Notion op Klaar zetten**, pas na akkoord van Demmy.
+
+### Vaste regels voor koppelingen
+
+- **Mail:** alleen via Resend, alleen vanaf een adres op @betaalpauze.nl, en altijd met `MAIL_TEST_MODE` uit `.env.local`. In testmodus gaat alle mail naar `MAIL_TEST_ADDRESS`.
+- **Supabase:** gebruik `SUPABASE_SECRET_KEY` alleen op de server, nooit in de browser of in een `NEXT_PUBLIC_*` variabele. Raak de bestaande tabel `signups` (de wachtlijst) niet aan.
+- **KVK:** gebruik de KVK-testomgeving zolang `KVK_API_KEY` leeg is.
+- **`v1/`** is een oud prototype. Niet aanraken.
+
 ## Git en pushen (regels voor Claude Code)
 
-Er is één branch: `main`. Volg bij elke wijziging deze stappen en stop als iets afwijkt:
+Tijdens de MVP werken we op de branch `mvp`. Een push naar `main` gaat meteen live via Netlify. Volg bij elke wijziging deze stappen en stop als iets afwijkt:
 
-1. `git status` en `git branch -a`: bevestig dat je op `main` staat. Bestaat er een andere lokale branch, laat die zien en vraag wat ermee moet. Maak zelf geen branches aan en merge niets.
-2. `git fetch origin` en `git status -sb`. Loopt `main` achter op `origin/main`, doe eerst `git pull --rebase origin main`.
-3. Toon de lijst met gewijzigde bestanden voordat je commit. Commit nooit `.env*`, `node_modules`, `.next` of losse zip-bestanden.
-4. Commit met een korte Nederlandse message in de stijl `feat: ...`, `fix: ...` of `chore: ...`.
-5. `git push origin main`.
-6. Meld daarna de commit-hash en dat Netlify nu automatisch bouwt (live na ongeveer een minuut).
+1. `git status` en `git branch -a`: bevestig dat je op `mvp` staat. Sta je op `main`, stop en vraag wat de bedoeling is. Merge niets.
+2. Toon de lijst met gewijzigde bestanden voordat je commit.
+3. Commit met een korte Nederlandse message in de stijl `feat: ...`, `fix: ...` of `chore: ...`.
+4. Push alleen na akkoord van Demmy, en alleen naar `mvp`. Push nooit naar `main` zonder akkoord.
+5. Meld daarna de commit-hash.
 
 ## Omgevingsvariabelen
 
-Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde vijf:
+Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde negen:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -90,6 +112,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 NOTIFY_EMAIL=
+SUPABASE_SECRET_KEY=
+KVK_API_KEY=
+MAIL_TEST_MODE=
+MAIL_TEST_ADDRESS=
 ```
 
 Is een nieuwe env-var nodig? Zeg dat expliciet: die moet handmatig in Netlify worden toegevoegd, gevolgd door "Trigger deploy" (de `NEXT_PUBLIC_*` vars worden in de build ingebakken).
@@ -100,5 +126,5 @@ Repository: https://github.com/demmy-o/betaalpauze
 
 Workflow:
 1. Lokaal ontwikkelen: `npm run dev`
-2. Committen en pushen naar `main` (zie regels hierboven)
-3. Netlify deployt automatisch
+2. Committen op `mvp`, pushen alleen na akkoord (zie regels hierboven)
+3. Na samenvoegen met `main` deployt Netlify automatisch

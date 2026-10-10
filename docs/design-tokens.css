@@ -1,0 +1,147 @@
+/* Betaalpauze — design tokens (Tailwind CSS v4, CSS-first)
+   Sfeer afgeleid van liveworkstudio.com: witte basis, brede pastelbanden per sectie,
+   ronde hoeken, pill-knoppen, luchtige koppen.
+   Prototype-niveau. Alle tekst/achtergrond-combinaties zijn getoetst op WCAG 2.1 AA.
+
+   Let op: dit is de referentieversie. Neem de tokens over in app/globals.css,
+   overschrijf de bestaande globals.css niet blind. */
+
+@import "tailwindcss";
+
+@theme {
+  /* ---- Typografie ---- */
+  --font-display: "Instrument Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --text-caption: 0.8125rem;   /* 13 — eyebrow, tag */
+  --text-sm: 0.875rem;         /* 14 — helptekst, labels */
+  --text-base: 1rem;           /* 16 — body */
+  --text-lead: 1.125rem;       /* 18 — introtekst */
+  --text-h3: 1.25rem;          /* 20 */
+  --text-h2: 1.5rem;           /* 24 */
+  --text-h1: 2rem;             /* 32 mobiel */
+  --text-display: 2.5rem;      /* 40 mobiel */
+
+  --text-h2--line-height: 1.3;
+  --text-h1--line-height: 1.2;
+  --text-display--line-height: 1.15;   /* luchtiger dan een klassieke display */
+  --text-base--line-height: 1.65;
+
+  --tracking-display: -0.01em;   /* nauwelijks tracking: koppen zijn licht, niet strak */
+  --tracking-heading: -0.01em;
+  --tracking-caption: 0.06em;
+
+  --font-weight-heading: 500;    /* koppen zijn medium, nooit bold */
+
+  /* ---- Basis­kleur ---- */
+  --color-ink: #1c1b2e;          /* tekst, primaire knop        16.9:1 op wit */
+  --color-ink-soft: #34324a;     /* 11.9:1 */
+  --color-muted: #55536b;        /* ondersteunende tekst         7.4:1 op wit, 5.3+ op elke pastel */
+  --color-subtle: #8b899e;       /* iconen, placeholder, disabled — ALLEEN op wit/canvas (3.4:1) */
+  --color-line: #e3e1ec;         /* scheidingslijn, kaartrand */
+  --color-line-strong: #8b899e;  /* invoerveld, checkbox         3.4:1 UI-contrast */
+  --color-canvas: #fbfafc;
+  --color-surface: #ffffff;
+
+  --color-accent: #6042c9;         /* links, focus, actieve stap  6.7:1 op wit, 5.2:1 op lilac */
+  --color-accent-strong: #4c33a8;  /* hover                       9.0:1 */
+  --color-accent-tint: #efeafc;
+
+  /* ---- Pastels: ALLEEN als achtergrond van een sectie of kaart ---- */
+  --color-lilac: #e6def7;        /* hero, hoofdboodschap */
+  --color-lilac-soft: #f3effb;
+  --color-mint: #a9e8bc;         /* wat kan, positieve uitkomst */
+  --color-mint-soft: #e6f7eb;
+  --color-peach: #fce7c6;        /* uitleg, gevolgen */
+  --color-peach-soft: #fef4e6;
+  --color-sky: #cfe0f8;          /* cijfers, overzicht */
+  --color-sky-soft: #eaf2fd;
+  --color-blush: #fadcec;        /* verhaal, quote */
+  --color-blush-soft: #faeaf3;
+
+  /* ---- Status: alleen in meldingen en validatie, nooit als sectiekleur ---- */
+  --color-success: #1b6e52;      /* 6.2:1 */
+  --color-success-tint: #e6f7eb;
+  --color-warning: #8a5a00;      /* 5.9:1 */
+  --color-warning-tint: #fef4e6;
+  --color-error: #a3251c;        /* 7.4:1 */
+  --color-error-tint: #fbeceb;
+
+  /* ---- Radius: rond en zacht ---- */
+  --radius-sm: 8px;     /* tag, badge */
+  --radius-md: 12px;    /* invoerveld */
+  --radius-lg: 16px;    /* kaart, dialog */
+  --radius-xl: 24px;    /* grote contentblokken binnen een sectie */
+  --radius-full: 999px; /* knoppen zijn pills */
+
+  /* ---- Ruimte (4px ritme) ---- */
+  --spacing: 0.25rem;
+
+  /* ---- Container ---- */
+  --container-prose: 680px;
+  --container-form: 480px;
+  --container-page: 1200px;
+
+  /* ---- Schaduw (spaarzaam: alleen zwevende lagen) ---- */
+  --shadow-pop: 0 4px 16px -4px rgb(28 27 46 / 0.12), 0 1px 3px rgb(28 27 46 / 0.06);
+  --shadow-dialog: 0 24px 48px -12px rgb(28 27 46 / 0.18);
+
+  /* ---- Motion ---- */
+  --ease-enter: cubic-bezier(0.2, 0, 0, 1);
+  --duration-micro: 120ms;
+  --duration-enter: 220ms;
+  --duration-step: 260ms;
+}
+
+/* Desktop: koppen groeien, bodytekst niet. */
+@media (min-width: 1024px) {
+  @theme {
+    --text-display: 3.75rem;  /* 60 */
+    --text-h1: 3rem;          /* 48 */
+    --text-h2: 2rem;          /* 32 */
+    --text-h3: 1.5rem;        /* 24 */
+    --text-lead: 1.25rem;     /* 20 */
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-heading);
+    letter-spacing: var(--tracking-heading);
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  /* Bedragen en datums altijd uitlijnbaar */
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* Full-bleed pastelband met gecentreerde content erbinnen */
+  .band { width: 100%; padding-block: 56px; }
+  @media (min-width: 1024px) { .band { padding-block: 112px; } }
+
+  /* Focus is nooit onzichtbaar */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

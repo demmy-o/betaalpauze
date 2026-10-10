@@ -32,7 +32,7 @@ export function WaitlistForm() {
           type="email"
           required
           placeholder="jouw@email.nl"
-          className="h-12 rounded-[12px] border-line bg-white px-4 text-[16px] text-ink placeholder:text-line md:text-[16px]"
+          className="h-12 rounded-[12px] border-line-strong bg-white px-4 text-[16px] text-ink placeholder:text-subtle md:text-[16px]"
         />
 
         {state.status === "invalid" && (
@@ -61,7 +61,7 @@ export function WaitlistForm() {
         {isPending ? "Bezig..." : "Houd me op de hoogte"}
       </Button>
 
-      <p className="text-[12px] leading-[1.6] text-line">
+      <p className="text-[12px] leading-[1.6] text-muted-foreground">
         Door je aan te melden ga je akkoord dat we je e-mailadres bewaren om je
         op de hoogte te houden. Je kunt je op elk moment afmelden.
       </p>

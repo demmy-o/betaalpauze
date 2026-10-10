@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--isolated",
+        "--allowed-origins",
+        "http://localhost:3000;https://*.netlify.app;https://betaalpauze.nl;https://www.betaalpauze.nl;https://wlfuakqareslcscgsxps.supabase.co"
+      ]
+    }
+  }
+}
