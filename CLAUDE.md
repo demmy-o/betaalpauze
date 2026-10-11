@@ -104,7 +104,7 @@ Tijdens de MVP werken we op de branch `mvp`. Een push naar `main` gaat meteen li
 
 ## Omgevingsvariabelen
 
-Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde elf:
+Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde twaalf:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -118,9 +118,12 @@ MAIL_TEST_MODE=
 MAIL_TEST_ADDRESS=
 WEKKER_GEHEIM=
 IP_ZOUT=
+BETA_WACHTWOORD=
 ```
 
 `WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). `IP_ZOUT` is het geheime zout voor de IP-hash bij de limiet op /partners (lib/ip.ts); zonder zout slaat het formulier niets op. Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus).
+
+`BETA_WACHTWOORD` is het wachtwoord voor de bètaversie op `/beta` (lib/beta.ts). Achter het wachtwoord: `/aanvragen`, `/mijn-plan`, `/inloggen` en `/api/kvk`. Open: `/`, `/partners`, de wachtlijst, `/betaald` en `/api/wekker`. Is de variabele leeg, dan is de bètaversie dicht voor iedereen. Verander je het wachtwoord, dan moeten alle testers het opnieuw invullen.
 
 ## Scripts voor beheer (lokaal, met de sleutels uit `.env.local`)
 

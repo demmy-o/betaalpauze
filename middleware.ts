@@ -1,8 +1,22 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { BETA_COOKIE, heeftToegang, isAfgeschermd, nietIndexeren } from "@/lib/beta"
 
-// Ververst bij elk verzoek de inlogsessie van Supabase, zodat je ingelogd blijft.
+// 1. De bètaversie afschermen: zonder geldige cookie stuurt de middleware je naar /beta (lib/beta.ts).
+// 2. Bij elk verzoek de inlogsessie van Supabase verversen, zodat je ingelogd blijft.
+// 3. Pagina's van de bètaversie krijgen "noindex", zodat Google ze niet toont.
 export async function middleware(request: NextRequest) {
+  const pad = request.nextUrl.pathname
+
+  if (isAfgeschermd(pad) && !(await heeftToegang(request.cookies.get(BETA_COOKIE)?.value))) {
+    if (pad.startsWith("/api/")) {
+      return NextResponse.json({ fout: "Alleen voor testers." }, { status: 401 })
+    }
+    const naar = new URL("/beta", request.url)
+    naar.searchParams.set("terug", pad + request.nextUrl.search)
+    return NextResponse.redirect(naar)
+  }
+
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -25,6 +39,8 @@ export async function middleware(request: NextRequest) {
   )
 
   await supabase.auth.getUser()
+
+  if (nietIndexeren(pad)) response.headers.set("X-Robots-Tag", "noindex, nofollow")
 
   return response
 }

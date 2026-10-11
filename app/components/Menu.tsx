@@ -8,7 +8,7 @@ import Link from "next/link"
 // Desktop: tekstlinks op een witte balk, eventueel één pill-knop rechts.
 // Mobiel: knop "Menu" opent een menu over het hele scherm in lilac.
 
-export type MenuItem = "klanten" | "schuldeisers"
+export type MenuItem = "klanten" | "schuldeisers" | "beta"
 
 const LINKS: { id: MenuItem | "beta"; tekst: string; href: string }[] = [
   { id: "klanten", tekst: "Voor klanten", href: "/#wachtlijst" },
