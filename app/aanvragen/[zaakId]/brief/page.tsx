@@ -20,7 +20,8 @@ export default async function BriefPagina({ params }: { params: Promise<{ zaakId
   if (!zaak?.brief) notFound()
   if (zaak.status !== "concept") redirect(`/aanvragen/${zaakId}/verstuurd`)
   if (!zaak.plan) redirect(`/aanvragen/${zaakId}/voorstel`)
-  if (!zaak.schuldeiserEmail) redirect("/aanvragen?stap=1")
+  const route = zaak.verzendroute === "post" ? "post" : "email"
+  if (route === "email" && !zaak.schuldeiserEmail) redirect("/aanvragen?stap=1")
 
   return (
     <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
@@ -28,8 +29,9 @@ export default async function BriefPagina({ params }: { params: Promise<{ zaakId
         <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
         <BriefBekijken
           zaakId={zaak.id}
-          schuldeiserEmail={zaak.schuldeiserEmail}
-          gegevens={{ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt }}
+          route={route}
+          schuldeiserEmail={zaak.schuldeiserEmail ?? ""}
+          gegevens={{ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt, route }}
         />
       </div>
     </main>

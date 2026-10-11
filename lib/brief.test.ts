@@ -65,6 +65,14 @@ describe("brief", () => {
     expect(tekst).toContain("Ik ben net mijn baan kwijt.")
   })
 
+  it("noemt bij een brief per post het e-mailadres in plaats van 'antwoorden op deze e-mail'", () => {
+    const post = briefAlsTekst(maakBrief({ ...basis, plan: termijnen, route: "post" }))
+    expect(post).toContain("U kunt mij mailen op sanne@voorbeeld.nl.")
+    expect(post).not.toContain("antwoorden op deze e-mail")
+    const mail = briefAlsTekst(maakBrief({ ...basis, plan: termijnen }))
+    expect(mail).toContain("U kunt antwoorden op deze e-mail.")
+  })
+
   it("beschrijft een pauze met één betaling", () => {
     const plan = rekenPlan({ soort: "pauze", bedragCenten: 38995, startdatum: "2026-10-10", pauzeMaanden: 2 })
     const tekst = briefAlsTekst(maakBrief({ ...basis, plan }))

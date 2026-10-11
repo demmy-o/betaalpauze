@@ -22,6 +22,8 @@ export default async function VerstuurdPagina({ params }: { params: Promise<{ za
   if (!zaak?.brief || !zaak.plan) notFound()
   if (zaak.status === "concept") redirect(`/aanvragen/${zaakId}/brief`)
 
+  if (zaak.status === "per_post") return <PerPost zaak={zaak} />
+
   const { plan } = zaak
   const eerste = plan.termijnen[0]
   const reactieVoor = plusDagen(plan.aangemaakt, REACTIE_DAGEN)
@@ -66,6 +68,38 @@ export default async function VerstuurdPagina({ params }: { params: Promise<{ za
           className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
         >
           Naar de startpagina
+        </Link>
+      </div>
+    </main>
+  )
+}
+
+// De brief is aangevraagd per post, maar nog niet verstuurd. Datums volgen pas als hij op de post is.
+function PerPost({ zaak }: { zaak: NonNullable<Awaited<ReturnType<typeof haalZaak>>> }) {
+  const s = zaak.brief!.schuldeiser
+  return (
+    <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
+      <div className="mx-auto flex max-w-form flex-col gap-8">
+        <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
+
+        <section className="flex flex-col gap-3 rounded-lg bg-mint-soft p-6">
+          <h1 className="text-h2 text-ink">We sturen je brief per post</h1>
+          <p className="text-base text-ink">
+            Je brief gaat naar {s.naam}, {s.straat}, {s.postcode} {s.plaats}. We doen hem binnen 2 werkdagen op de post.
+          </p>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
+          <ol className="flex list-decimal flex-col gap-2 pl-5 text-base text-ink">
+            <li>Je krijgt een mail zodra de brief op de post is, met de brief als PDF.</li>
+            <li>Vanaf die dag heeft het bedrijf 14 dagen om te reageren. Het antwoord komt in jouw mailbox.</li>
+            <li>Rond elke betaling sturen we je een herinnering.</li>
+          </ol>
+        </section>
+
+        <Link href="/mijn-plan" className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong">
+          Naar Mijn plan
         </Link>
       </div>
     </main>

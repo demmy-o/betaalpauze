@@ -11,6 +11,7 @@ export type BriefGegevens = {
   plan: Plan
   datum: string // verzenddatum, "JJJJ-MM-DD"
   toelichting?: string // eigen woorden van de gebruiker, mag leeg
+  route?: "email" | "post" // hoe de brief verstuurd wordt; standaard e-mail
 }
 
 // Een alinea is gewone tekst, of een lijstje (de termijnen).
@@ -70,7 +71,9 @@ export function maakBrief(g: BriefGegevens): Brief {
       "Dit is een voorstel. Het is pas een afspraak als u ermee akkoord gaat. " +
       `Wilt u mij uiterlijk ${reactieVoor} per e-mail laten weten of u akkoord gaat? ` +
       `Hoor ik niets, dan begin ik op ${eersteBetaling} toch met betalen volgens dit voorstel. ` +
-      `U kunt antwoorden op deze e-mail. Uw antwoord komt dan direct bij mij, op ${g.afzender.email}.`,
+      (g.route === "post"
+        ? `U kunt mij mailen op ${g.afzender.email}.`
+        : `U kunt antwoorden op deze e-mail. Uw antwoord komt dan direct bij mij, op ${g.afzender.email}.`),
   })
 
   return {

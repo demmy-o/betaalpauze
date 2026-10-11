@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 // Alle zaken van de ingelogde gebruiker, nieuwste eerst, met het nieuwste voorstel,
 // de termijnen en de verstuurde brief. Row level security zorgt dat je alleen je eigen zaken ziet.
 
-export type ZaakStatus = "concept" | "verstuurd" | "akkoord" | "afgewezen" | "afgerond"
+export type ZaakStatus = "concept" | "per_post" | "verstuurd" | "akkoord" | "afgewezen" | "afgerond"
 export type TermijnStatus = "open" | "betaald" | "niet_betaald"
 
 export type ZaakOverzicht = {

@@ -7,6 +7,7 @@ import { BetaaldKnop, TochNietBetaaldKnop } from "./BetaaldKnop"
 // Status altijd als tekst, met een zachte kleur erachter. Nooit alleen een kleur (docs/design.md).
 const ZAAK_STATUS: Record<ZaakStatus, { tekst: string; stijl: string }> = {
   concept: { tekst: "Nog niet verstuurd", stijl: "bg-line text-ink" },
+  per_post: { tekst: "Wordt per post verstuurd", stijl: "bg-peach-soft text-ink" },
   verstuurd: { tekst: "Wacht op reactie", stijl: "bg-sky-soft text-ink" },
   akkoord: { tekst: "Akkoord", stijl: "bg-success-tint text-success" },
   afgewezen: { tekst: "Niet akkoord", stijl: "bg-warning-tint text-warning" },
@@ -67,7 +68,13 @@ export function ZaakKaart({ zaak }: { zaak: ZaakOverzicht }) {
         </section>
       )}
 
-      {zaak.status !== "concept" && <ReactieKiezen zaakId={zaak.id} schuldeiser={zaak.schuldeiser} status={zaak.status} />}
+      {zaak.status === "per_post" && (
+        <p className="text-sm text-muted-foreground">
+          We doen je brief binnen 2 werkdagen op de post. De betaaldata worden definitief op de dag dat hij verstuurd is.
+        </p>
+      )}
+
+      {zaak.status !== "concept" && zaak.status !== "per_post" && <ReactieKiezen zaakId={zaak.id} schuldeiser={zaak.schuldeiser} status={zaak.status} />}
 
       {zaak.brief && (
         <details className="group rounded-md border border-line">

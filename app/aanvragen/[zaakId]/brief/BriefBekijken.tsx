@@ -11,10 +11,12 @@ import { verstuurBrief } from "./actions"
 // Het voorbeeld verandert mee terwijl je typt.
 export function BriefBekijken({
   zaakId,
+  route,
   schuldeiserEmail,
   gegevens,
 }: {
   zaakId: string
+  route: "email" | "post"
   schuldeiserEmail: string
   gegevens: Omit<BriefGegevens, "toelichting">
 }) {
@@ -67,10 +69,22 @@ export function BriefBekijken({
       </div>
 
       <section className="flex flex-col gap-4 rounded-lg bg-lilac-soft p-5">
-        <p className="text-base text-ink">
-          Je brief gaat naar <span className="font-medium">{schuldeiserEmail}</span>. Jij krijgt een kopie op{" "}
-          <span className="font-medium">{gegevens.afzender.email}</span>, en antwoorden komen direct bij jou.
-        </p>
+        {route === "post" ? (
+          <p className="text-base text-ink">
+            Wij sturen je brief per post naar{" "}
+            <span className="font-medium">
+              {gegevens.schuldeiser.naam}, {gegevens.schuldeiser.straat}, {gegevens.schuldeiser.postcode}{" "}
+              {gegevens.schuldeiser.plaats}
+            </span>
+            . We doen hem binnen 2 werkdagen op de post. Antwoorden komen per mail bij jou, op{" "}
+            <span className="font-medium">{gegevens.afzender.email}</span>.
+          </p>
+        ) : (
+          <p className="text-base text-ink">
+            Je brief gaat naar <span className="font-medium">{schuldeiserEmail}</span>. Jij krijgt een kopie op{" "}
+            <span className="font-medium">{gegevens.afzender.email}</span>, en antwoorden komen direct bij jou.
+          </p>
+        )}
         {fout && (
           <p role="alert" className="rounded-md bg-error-tint p-3 text-sm text-ink">
             {fout}
@@ -82,7 +96,11 @@ export function BriefBekijken({
           disabled={bezig}
           className="h-12 w-full rounded-full bg-ink px-6 text-base font-medium text-white transition-colors duration-[120ms] hover:bg-ink-soft disabled:opacity-60 sm:w-auto sm:self-start"
         >
-          {bezig ? "Je brief wordt verstuurd..." : "Voorstel versturen"}
+          {bezig
+            ? "Je brief wordt verstuurd..."
+            : route === "post"
+              ? "Voorstel per post laten versturen"
+              : "Voorstel versturen"}
         </button>
       </section>
 
