@@ -121,6 +121,14 @@ WEKKER_GEHEIM=
 
 `WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus).
 
+## Scripts voor beheer (lokaal, met de sleutels uit `.env.local`)
+
+- `npm run post -- <zaak-id of factuurnummer> <JJJJ-MM-DD> [--proef]`: een brief per post definitief maken en op verstuurd zetten. Draai het op de dag dat je de brief op de post doet. Het werkt alleen bij status `per_post`, toont eerst of `MAIL_TEST_MODE` aan staat en vraagt bevestiging. Met `--proef` verandert er niets.
+- `npm run vul-schuldeisers`: de eigen lijst met bekende schuldeisers bijwerken (`scripts/vul-schuldeisers.mjs`).
+- `npm run wekker -- JJJJ-MM-DD`: de herinneringen voor een datum met de hand versturen.
+
+Let op: na de livegang praten deze scripts met de echte database. Scripts in TypeScript draaien met `tsx` en `tsconfig.scripts.json`.
+
 Is een nieuwe env-var nodig? Zeg dat expliciet: die moet handmatig in Netlify worden toegevoegd, gevolgd door "Trigger deploy" (de `NEXT_PUBLIC_*` vars worden in de build ingebakken).
 
 ## GitHub

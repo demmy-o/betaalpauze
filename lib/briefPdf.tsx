@@ -1,23 +1,27 @@
 import "server-only"
-import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer"
 import type { Brief } from "./brief"
 
 // De brief als PDF (A4). Zelfde tekst als het voorbeeld op het scherm (lib/brief.ts).
 // Lettertype Helvetica zit in elke PDF-lezer en kent €, ë en é.
+//
+// De PDF-bibliotheek laden we pas als er een PDF gemaakt wordt (dynamische import).
+// Zo werkt dit bestand zowel in de app als in lokale scripts (npm run post).
+type Pdf = typeof import("@react-pdf/renderer")
 
 const INKT = "#1c1b2e"
 const GRIJS = "#55536b"
 
-const stijl = StyleSheet.create({
+const stijl = {
   pagina: { paddingTop: 44, paddingBottom: 64, paddingHorizontal: 60, fontFamily: "Helvetica", fontSize: 10, lineHeight: 1.45, color: INKT },
   blok: { marginBottom: 10 },
   vet: { fontFamily: "Helvetica-Bold" },
   lijstRegel: { flexDirection: "row", marginBottom: 2 },
   bolletje: { width: 12 },
   voetnoot: { position: "absolute", bottom: 32, left: 60, right: 60, fontSize: 8, color: GRIJS, borderTopWidth: 0.5, borderTopColor: "#e3e1ec", paddingTop: 6 },
-})
+} as const
 
-function BriefDocument({ brief }: { brief: Brief }) {
+function BriefDocument({ brief, pdf }: { brief: Brief; pdf: Pdf }) {
+  const { Document, Page, Text, View } = pdf
   const laatste = brief.blokken[brief.blokken.length - 1]
   return (
     <Document title={brief.onderwerp} author={brief.naam} language="nl">
@@ -70,6 +74,7 @@ function BriefDocument({ brief }: { brief: Brief }) {
   )
 }
 
-export function maakPdf(brief: Brief): Promise<Buffer> {
-  return renderToBuffer(<BriefDocument brief={brief} />)
+export async function maakPdf(brief: Brief): Promise<Buffer> {
+  const pdf = await import("@react-pdf/renderer")
+  return pdf.renderToBuffer(<BriefDocument brief={brief} pdf={pdf} />)
 }

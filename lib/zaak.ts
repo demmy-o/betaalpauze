@@ -28,7 +28,7 @@ export async function haalZaak(zaakId: string): Promise<ZaakMetPlan | null> {
   const { data: zaak } = await supabase
     .from("zaken")
     .select(
-      "id, factuurnummer, factuurdatum, bedrag_centen, klantnummer, status, schuldeiser_email, verzendroute, post_straat, post_postcode, post_plaats, schuldeisers(naam, straat, postcode, plaats)"
+      "id, factuurnummer, factuurdatum, bedrag_centen, klantnummer, status, verstuurd_op, schuldeiser_email, verzendroute, post_straat, post_postcode, post_plaats, schuldeisers(naam, straat, postcode, plaats)"
     )
     .eq("id", zaakId)
     .maybeSingle()
@@ -57,7 +57,7 @@ export async function haalZaak(zaakId: string): Promise<ZaakMetPlan | null> {
     status: zaak.status,
     schuldeiserEmail: zaak.schuldeiser_email,
     verzendroute: zaak.verzendroute,
-    plan: planRij ? naarPlan(planRij, zaak.bedrag_centen) : null,
+    plan: planRij ? naarPlan(planRij, zaak.bedrag_centen, zaak.verstuurd_op) : null,
     brief:
       profiel && schuldeiser
         ? {
@@ -101,13 +101,17 @@ type PlanRij = {
   termijnen: { volgnummer: number; vervaldatum: string; bedrag_centen: number }[]
 }
 
-function naarPlan(rij: PlanRij, totaalCenten: number): Plan & { aangemaakt: string } {
+// "aangemaakt" is de dag waarop het plan begint te tellen: de verzenddatum als de brief
+// verstuurd is (bij post de postdatum), anders de dag waarop het voorstel is gemaakt.
+function naarPlan(rij: PlanRij, totaalCenten: number, verstuurdOp: string | null): Plan & { aangemaakt: string } {
   const termijnen = [...rij.termijnen]
     .sort((a, b) => a.volgnummer - b.volgnummer)
     .map((t) => ({ volgnummer: t.volgnummer, vervaldatum: t.vervaldatum, bedragCenten: t.bedrag_centen }))
 
   // De dag waarop het voorstel is gemaakt, in Nederlandse tijd.
-  const aangemaakt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(new Date(rij.created_at))
+  const aangemaakt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(
+    new Date(verstuurdOp ?? rij.created_at)
+  )
 
   // Hoeveel maanden pauze? Dat volgt uit de startdatum en het einde van de pauze.
   let pauzeMaanden: number | undefined

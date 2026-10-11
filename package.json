@@ -10,7 +10,8 @@
     "test:rls": "node --env-file=.env.local scripts/test-rls.mjs",
     "test": "vitest run",
     "wekker": "node --env-file=.env.local scripts/wekker.mjs",
-    "vul-schuldeisers": "node --env-file=.env.local scripts/vul-schuldeisers.mjs"
+    "vul-schuldeisers": "node --env-file=.env.local scripts/vul-schuldeisers.mjs",
+    "post": "tsx --tsconfig tsconfig.scripts.json --env-file=.env.local scripts/post.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -41,6 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^4.1.11"
   }

@@ -46,7 +46,17 @@ export async function vervangConceptPlan(zaakId: string, plan: Plan): Promise<bo
   }
 
   if (oud) {
-    await admin.from("betaalplannen").delete().eq("id", oud.id) // termijnen gaan mee
+    // Een bewaarde (concept)brief verwijst misschien nog naar het oude plan. Eerst doorverwijzen,
+    // anders kan het oude plan niet weg.
+    const { error: briefFout } = await admin.from("brieven").update({ betaalplan_id: nieuw.id }).eq("betaalplan_id", oud.id)
+    const { error: weghalenFout } = briefFout
+      ? { error: briefFout }
+      : await admin.from("betaalplannen").delete().eq("id", oud.id) // termijnen gaan mee
+    if (weghalenFout) {
+      // Het oude plan blijft dan staan; het nieuwe heeft het hoogste versienummer en gaat dus voor.
+      console.error("Oud plan weghalen mislukt:", weghalenFout.message)
+      return false
+    }
     await admin.from("betaalplannen").update({ versie }).eq("id", nieuw.id)
   }
   return true
