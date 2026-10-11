@@ -1,5 +1,4 @@
-import Image from "next/image"
-import Link from "next/link"
+import { Menu } from "../components/Menu"
 import { PartnerFormulier } from "./PartnerFormulier"
 
 export const metadata = {
@@ -42,17 +41,7 @@ function Lijst({ items }: { items: string[] }) {
 export default function PartnersPagina() {
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <header className="mx-auto flex w-full max-w-page items-center justify-between gap-4 px-5 py-5 md:px-8 lg:px-12">
-        <Link href="/" className="flex h-10 items-center">
-          <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
-        </Link>
-        <a
-          href="#pilot"
-          className="hidden h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-soft sm:flex"
-        >
-          Een pilot bespreken
-        </a>
-      </header>
+      <Menu actief="schuldeisers" knop={{ tekst: "Een pilot bespreken", href: "#pilot" }} />
 
       <main className="flex-1">
         {/* HERO */}
