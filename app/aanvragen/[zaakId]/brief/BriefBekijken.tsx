@@ -12,11 +12,13 @@ import { verstuurBrief } from "./actions"
 export function BriefBekijken({
   zaakId,
   route,
+  beta,
   schuldeiserEmail,
   gegevens,
 }: {
   zaakId: string
   route: "email" | "post"
+  beta: boolean // bètaversie: de brief gaat alleen naar de gebruiker zelf
   schuldeiserEmail: string
   gegevens: Omit<BriefGegevens, "toelichting">
 }) {
@@ -69,7 +71,13 @@ export function BriefBekijken({
       </div>
 
       <section className="flex flex-col gap-4 rounded-lg bg-lilac-soft p-5">
-        {route === "post" ? (
+        {beta ? (
+          <p className="text-base text-ink">
+            Dit is de testversie. Je brief gaat <span className="font-medium">niet</span> naar{" "}
+            {gegevens.schuldeiser.naam}, maar alleen naar jou, op{" "}
+            <span className="font-medium">{gegevens.afzender.email}</span>.
+          </p>
+        ) : route === "post" ? (
           <p className="text-base text-ink">
             Wij sturen je brief per post naar{" "}
             <span className="font-medium">
@@ -98,7 +106,9 @@ export function BriefBekijken({
         >
           {bezig
             ? "Je brief wordt verstuurd..."
-            : route === "post"
+            : beta
+              ? "Stuur de testbrief naar mij"
+              : route === "post"
               ? "Voorstel per post laten versturen"
               : "Voorstel versturen"}
         </button>

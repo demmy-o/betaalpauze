@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { haalZaak } from "@/lib/zaak"
 import { MAX_TOELICHTING, maakBrief } from "@/lib/brief"
 import { maakPdf } from "@/lib/briefPdf"
+import { mailBeta, testversieRegel } from "@/lib/verstuur"
 
 // POST /aanvragen/[zaakId]/brief/pdf  (formulier met "toelichting")
 // Geeft de brief als PDF terug. Alleen voor je eigen zaak (row level security).
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const toelichting = String(formulier.get("toelichting") ?? "").slice(0, MAX_TOELICHTING)
 
   const brief = maakBrief({ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt, toelichting })
-  const pdf = await maakPdf(brief)
+  const pdf = await maakPdf(brief, mailBeta() ? testversieRegel(zaak.brief.schuldeiser.naam) : undefined)
 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {

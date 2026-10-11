@@ -82,12 +82,17 @@ Hoe het eruitziet staat in `docs/design.md` (regels voor kleur, copy, formuliere
 2. **Na elke stap testen in de browser.** Gebruik Playwright op http://localhost:3000 en kijk of het werkt zoals het ticket zegt.
 3. **Daarna stoppen voor akkoord.** Laat zien wat je gedaan en getest hebt, en wacht tot Demmy akkoord geeft.
 4. **Nooit `.env` committen.** Geen `.env*`, `node_modules`, `.next` of losse zip-bestanden.
-5. **Mail altijd in testmodus.** Verstuur geen echte mail naar schuldeisers of gebruikers zolang de testmodus aan staat.
+5. **Nooit mail naar een schuldeiser.** Lokaal werk je in testmodus (`MAIL_TEST_MODE=true`). De bètaversie draait met `MAIL_BETA=true`: dan gaat er nooit mail naar een schuldeiser.
 6. **Na elk ticket het ticket in Notion op Klaar zetten**, pas na akkoord van Demmy.
 
 ### Vaste regels voor koppelingen
 
-- **Mail:** alleen via Resend, alleen vanaf een adres op @betaalpauze.nl, en altijd met `MAIL_TEST_MODE` uit `.env.local`. In testmodus gaat alle mail naar `MAIL_TEST_ADDRESS`.
+- **Mail:** alleen via Resend, alleen vanaf een adres op @betaalpauze.nl, en altijd via `verstuurMail` in `lib/verstuur.ts`. Elke mail zegt voor wie hij is (`soort`: `schuldeiser`, `gebruiker` of `beheer`).
+  - **Testmodus** (`MAIL_TEST_MODE=true`): alle mail gaat naar `MAIL_TEST_ADDRESS`. Inloggen kan alleen met dat adres.
+  - **Bètaversie** (`MAIL_BETA=true`): **bij MAIL_BETA nooit mail naar een schuldeiser.** `verstuurMail` weigert elke mail met `soort: "schuldeiser"`, ook als iemand dat per ongeluk aanroept. Mail voor de gebruiker (code, brief, herinneringen) gaat naar de gebruiker zelf. De brief krijgt bovenaan "Testversie: deze brief is niet naar [bedrijf] gestuurd" (mail en PDF). De postroute stuurt geen printopdracht. Mail voor beheer gaat alleen naar `NOTIFY_EMAIL`. Inloggen kan met elk adres.
+  - **Extra slot:** mail met `soort: "schuldeiser"` gaat alleen weg als `MAIL_ECHT=true`. Anders weigert `verstuurMail` hem altijd, wat de andere variabelen ook zeggen. `MAIL_ECHT` staat bewust niet in de lijst hieronder en **niet in Netlify**. Zetten mag pas na ticket 18 en 19, en alleen met akkoord van Demmy.
+  - Op Netlify voor de bèta: `MAIL_BETA=true` en `MAIL_TEST_MODE=false`.
+  - Lokaal: `MAIL_TEST_MODE=true` en `MAIL_BETA=true`. Dan gaat alle mail naar het testadres, en de brief als testbrief.
 - **Supabase:** gebruik `SUPABASE_SECRET_KEY` alleen op de server, nooit in de browser of in een `NEXT_PUBLIC_*` variabele. Raak de bestaande tabel `signups` (de wachtlijst) niet aan.
 - **KVK:** gebruik de KVK-testomgeving zolang `KVK_API_KEY` leeg is.
 - **`v1/`** is een oud prototype. Niet aanraken.
@@ -104,7 +109,7 @@ Tijdens de MVP werken we op de branch `mvp`. Een push naar `main` gaat meteen li
 
 ## Omgevingsvariabelen
 
-Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde twaalf:
+Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde dertien:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -116,12 +121,13 @@ SUPABASE_SECRET_KEY=
 KVK_API_KEY=
 MAIL_TEST_MODE=
 MAIL_TEST_ADDRESS=
+MAIL_BETA=
 WEKKER_GEHEIM=
 IP_ZOUT=
 BETA_WACHTWOORD=
 ```
 
-`WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). `IP_ZOUT` is het geheime zout voor de IP-hash bij de limiet op /partners (lib/ip.ts); zonder zout slaat het formulier niets op. Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus).
+`WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). `IP_ZOUT` is het geheime zout voor de IP-hash bij de limiet op /partners (lib/ip.ts); zonder zout slaat het formulier niets op. Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus of in de bètaversie).
 
 `BETA_WACHTWOORD` is het wachtwoord voor de bètaversie op `/beta` (lib/beta.ts). Achter het wachtwoord: `/aanvragen`, `/mijn-plan`, `/inloggen` en `/api/kvk`. Open: `/`, `/partners`, de wachtlijst, `/betaald` en `/api/wekker`. Is de variabele leeg, dan is de bètaversie dicht voor iedereen. Verander je het wachtwoord, dan moeten alle testers het opnieuw invullen.
 

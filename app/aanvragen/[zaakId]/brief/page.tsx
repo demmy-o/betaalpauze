@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/server"
 import { haalZaak } from "@/lib/zaak"
+import { mailBeta } from "@/lib/verstuur"
 import { BriefBekijken } from "./BriefBekijken"
 
 export const metadata = { title: "Je brief · Betaalpauze.nl" }
@@ -30,6 +31,7 @@ export default async function BriefPagina({ params }: { params: Promise<{ zaakId
         <BriefBekijken
           zaakId={zaak.id}
           route={route}
+          beta={mailBeta()}
           schuldeiserEmail={zaak.schuldeiserEmail ?? ""}
           gegevens={{ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt, route }}
         />

@@ -17,15 +17,18 @@ const stijl = {
   vet: { fontFamily: "Helvetica-Bold" },
   lijstRegel: { flexDirection: "row", marginBottom: 2 },
   bolletje: { width: 12 },
+  testversie: { marginBottom: 16, padding: 8, borderWidth: 1, borderColor: "#8a5a00", backgroundColor: "#fef4e6", fontFamily: "Helvetica-Bold" },
   voetnoot: { position: "absolute", bottom: 32, left: 60, right: 60, fontSize: 8, color: GRIJS, borderTopWidth: 0.5, borderTopColor: "#e3e1ec", paddingTop: 6 },
 } as const
 
-function BriefDocument({ brief, pdf }: { brief: Brief; pdf: Pdf }) {
+function BriefDocument({ brief, pdf, testversie }: { brief: Brief; pdf: Pdf; testversie?: string }) {
   const { Document, Page, Text, View } = pdf
   const laatste = brief.blokken[brief.blokken.length - 1]
   return (
     <Document title={brief.onderwerp} author={brief.naam} language="nl">
       <Page size="A4" style={stijl.pagina}>
+        {testversie && <Text style={stijl.testversie}>{testversie}</Text>}
+
         <View style={stijl.blok}>
           {brief.afzender.map((regel) => (
             <Text key={regel}>{regel}</Text>
@@ -74,7 +77,8 @@ function BriefDocument({ brief, pdf }: { brief: Brief; pdf: Pdf }) {
   )
 }
 
-export async function maakPdf(brief: Brief): Promise<Buffer> {
+// testversie: de regel bovenaan in de bètaversie ("Testversie: deze brief is niet naar ... gestuurd").
+export async function maakPdf(brief: Brief, testversie?: string): Promise<Buffer> {
   const pdf = await import("@react-pdf/renderer")
-  return pdf.renderToBuffer(<BriefDocument brief={brief} pdf={pdf} />)
+  return pdf.renderToBuffer(<BriefDocument brief={brief} pdf={pdf} testversie={testversie} />)
 }

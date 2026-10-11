@@ -62,6 +62,7 @@ export async function meldAan(
     `Bericht:\n${g.bericht || "-"}`,
   ]
   const gemaild = await verstuurMail({
+    soort: "beheer",
     vanNaam: "Betaalpauze",
     vanAdres: "partners@betaalpauze.nl",
     aan: process.env.NOTIFY_EMAIL || process.env.MAIL_TEST_ADDRESS || "",

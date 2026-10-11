@@ -3,16 +3,32 @@ import type { Brief } from "@/lib/brief"
 
 // De mail aan de schuldeiser: de brief zelf als tekst in de mail, en als PDF in de bijlage.
 // Eenvoudig gehouden, zodat hij in elk mailprogramma goed leesbaar is.
+// In de bètaversie gaat hij naar de gebruiker zelf, met bovenaan de regel "Testversie: ..." (testversie).
 
 const tekst = { fontSize: "15px", lineHeight: "1.55", color: "#1c1b2e", margin: "0 0 14px" }
 
-export function BriefMail({ brief }: { brief: Brief }) {
+export function BriefMail({ brief, testversie }: { brief: Brief; testversie?: string }) {
   return (
     <Html lang="nl">
       <Head />
       <Preview>{brief.onderwerp}</Preview>
       <Body style={{ backgroundColor: "#ffffff", fontFamily: "Helvetica, Arial, sans-serif" }}>
         <Container style={{ maxWidth: "600px", padding: "24px" }}>
+          {testversie && (
+            <Text
+              style={{
+                ...tekst,
+                fontWeight: 700,
+                backgroundColor: "#fef4e6",
+                border: "1px solid #8a5a00",
+                borderRadius: "8px",
+                padding: "12px 14px",
+                margin: "0 0 20px",
+              }}
+            >
+              {testversie}
+            </Text>
+          )}
           <Text style={tekst}>{brief.aanhef}</Text>
 
           {brief.blokken.map((blok, i) =>

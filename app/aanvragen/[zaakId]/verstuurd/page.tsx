@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import { haalZaak } from "@/lib/zaak"
 import { datumLang, euro, plusDagen } from "@/lib/betaalplan"
 import { REACTIE_DAGEN } from "@/lib/brief"
+import { mailBeta } from "@/lib/verstuur"
 
 export const metadata = { title: "Verstuurd · Betaalpauze.nl" }
 
@@ -28,6 +29,7 @@ export default async function VerstuurdPagina({ params }: { params: Promise<{ za
   const eerste = plan.termijnen[0]
   const reactieVoor = plusDagen(plan.aangemaakt, REACTIE_DAGEN)
   const herinnering = plusDagen(eerste.vervaldatum, -3)
+  const beta = mailBeta()
 
   return (
     <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
@@ -35,19 +37,33 @@ export default async function VerstuurdPagina({ params }: { params: Promise<{ za
         <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
 
         <section className="flex flex-col gap-3 rounded-lg bg-mint-soft p-6">
-          <h1 className="text-h2 text-ink">Je voorstel is verstuurd</h1>
-          <p className="text-base text-ink">
-            Je brief is naar {zaak.brief.schuldeiser.naam} gestuurd. Een kopie staat in je mailbox, op{" "}
-            {zaak.brief.afzender.email}.
-          </p>
+          <h1 className="text-h2 text-ink">{beta ? "Je testbrief staat in je mailbox" : "Je voorstel is verstuurd"}</h1>
+          {beta ? (
+            <p className="text-base text-ink">
+              Dit is de testversie. Je brief is niet naar {zaak.brief.schuldeiser.naam} gestuurd. Je vindt hem in je
+              mailbox, op {zaak.brief.afzender.email}.
+            </p>
+          ) : (
+            <p className="text-base text-ink">
+              Je brief is naar {zaak.brief.schuldeiser.naam} gestuurd. Een kopie staat in je mailbox, op{" "}
+              {zaak.brief.afzender.email}.
+            </p>
+          )}
         </section>
 
         <section className="flex flex-col gap-4">
           <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
           <ol className="flex flex-col gap-4">
-            <Moment datum={reactieVoor} titel="Het bedrijf reageert">
-              Het bedrijf heeft tot deze dag om te reageren. Het antwoord komt direct in jouw mailbox, niet bij ons.
-            </Moment>
+            {beta ? (
+              <Moment datum={reactieVoor} titel="Hier zou het bedrijf reageren">
+                In de echte versie heeft het bedrijf tot deze dag om te reageren. Nu komt er geen antwoord. Op Mijn plan
+                kun je zelf kiezen wat het bedrijf had kunnen zeggen.
+              </Moment>
+            ) : (
+              <Moment datum={reactieVoor} titel="Het bedrijf reageert">
+                Het bedrijf heeft tot deze dag om te reageren. Het antwoord komt direct in jouw mailbox, niet bij ons.
+              </Moment>
+            )}
             <Moment datum={herinnering} titel="Wij sturen een herinnering">
               Drie dagen voor je eerste betaling krijg je van ons een mail.
             </Moment>
@@ -64,10 +80,10 @@ export default async function VerstuurdPagina({ params }: { params: Promise<{ za
         </p>
 
         <Link
-          href="/"
+          href={beta ? "/mijn-plan" : "/"}
           className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
         >
-          Naar de startpagina
+          {beta ? "Naar Mijn plan" : "Naar de startpagina"}
         </Link>
       </div>
     </main>

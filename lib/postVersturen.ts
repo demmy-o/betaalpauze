@@ -212,6 +212,7 @@ export async function verstuurPerPost(v: PostVoorbereiding, siteUrl: string): Pr
 
   // De definitieve PDF naar Betaalpauze, om te printen.
   const naarJou = await verstuurMail({
+    soort: "beheer",
     vanNaam: "Betaalpauze",
     vanAdres: "post@betaalpauze.nl",
     aan: process.env.NOTIFY_EMAIL || process.env.MAIL_TEST_ADDRESS || "",
@@ -231,6 +232,7 @@ export async function verstuurPerPost(v: PostVoorbereiding, siteUrl: string): Pr
   // De gebruiker laten weten dat de brief op de post is.
   const eerste = v.plan.termijnen[0]
   const naarGebruiker = await verstuurMail({
+    soort: "gebruiker",
     vanNaam: "Betaalpauze",
     vanAdres: "voorstel@betaalpauze.nl",
     aan: v.gebruikerEmail,

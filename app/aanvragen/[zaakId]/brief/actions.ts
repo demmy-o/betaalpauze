@@ -7,7 +7,7 @@ import { rekenPlan, vandaag } from "@/lib/betaalplan"
 import { MAX_TOELICHTING, briefAlsTekst, maakBrief } from "@/lib/brief"
 import { maakPdf } from "@/lib/briefPdf"
 import { vervangConceptPlan } from "@/lib/planOpslaan"
-import { AFZENDER_BRIEF, verstuurMail } from "@/lib/verstuur"
+import { AFZENDER_BRIEF, mailBeta, testversieRegel, verstuurMail } from "@/lib/verstuur"
 import { planBerichten } from "@/lib/wekker"
 import { BriefMail } from "@/emails/BriefMail"
 import { PostMelding } from "@/emails/PostMelding"
@@ -19,6 +19,7 @@ type Klaar = ZaakMetPlan & { brief: NonNullable<ZaakMetPlan["brief"]>; plan: Non
 //   gebruiker in cc, PDF als bijlage. In testmodus gaat alles naar het testadres (lib/verstuur.ts).
 // - per post: de zaak gaat op "wordt per post verstuurd" en Betaalpauze krijgt een melding.
 //   Het script `npm run post` maakt later de definitieve brief met de postdatum.
+// In de bètaversie (MAIL_BETA) gaat de brief bij beide routes alleen naar de gebruiker zelf (alsTest).
 export async function verstuurBrief(zaakId: string, toelichtingRuw: string): Promise<{ melding: string } | void> {
   let zaak = await haalZaak(zaakId)
   if (!zaak?.brief || !zaak.plan) return { melding: "We konden je brief niet vinden. Log opnieuw in en probeer het nog eens." }
@@ -43,9 +44,18 @@ export async function verstuurBrief(zaakId: string, toelichtingRuw: string): Pro
   const toelichting = toelichtingRuw.trim().slice(0, MAX_TOELICHTING)
   const klaar = zaak as Klaar
 
-  return zaak.verzendroute === "post"
-    ? perPost(klaar, toelichting, nu)
-    : perMail(klaar, toelichting, nu)
+  const route = zaak.verzendroute === "post" ? "post" : "email"
+  if (route === "post" && !postadresCompleet(klaar)) {
+    return { melding: "Het postadres van het bedrijf is niet compleet. Vul het in bij stap 1." }
+  }
+  if (mailBeta()) return alsTest(klaar, toelichting, nu, route)
+
+  return route === "post" ? perPost(klaar, toelichting, nu) : perMail(klaar, toelichting, nu)
+}
+
+function postadresCompleet(zaak: Klaar) {
+  const { straat, postcode, plaats } = zaak.brief.schuldeiser
+  return Boolean(straat && postcode && plaats)
 }
 
 // ---------------------------------------------------------------
@@ -74,6 +84,7 @@ async function perMail(zaak: Klaar, toelichting: string, nu: string): Promise<{ 
   const gebruikerEmail = zaak.brief.afzender.email
 
   const verzonden = await verstuurMail({
+    soort: "schuldeiser",
     vanNaam: `${brief.naam} via Betaalpauze`,
     vanAdres: AFZENDER_BRIEF,
     aan: schuldeiserEmail,
@@ -153,6 +164,7 @@ async function perPost(zaak: Klaar, toelichting: string, nu: string): Promise<{ 
   // Melding aan Betaalpauze. In testmodus gaat ook deze naar het testadres.
   const naar = process.env.NOTIFY_EMAIL || process.env.MAIL_TEST_ADDRESS || ""
   const gemeld = await verstuurMail({
+    soort: "beheer",
     vanNaam: "Betaalpauze",
     vanAdres: "post@betaalpauze.nl",
     aan: naar,
@@ -186,6 +198,68 @@ async function perPost(zaak: Klaar, toelichting: string, nu: string): Promise<{ 
     zaak_id: zaak.id,
     naam: "brief_per_post_aangevraagd",
     data: { route: "post" },
+  })
+
+  redirect(`/aanvragen/${zaak.id}/verstuurd`)
+}
+
+// ---------------------------------------------------------------
+// Bètaversie: de brief gaat alleen naar de gebruiker zelf
+// ---------------------------------------------------------------
+
+// Werkt voor beide routes hetzelfde: de brief gaat met PDF naar de gebruiker, met bovenaan
+// "Testversie: deze brief is niet naar [bedrijf] gestuurd". Daarna gaat alles verder alsof
+// hij verstuurd is (status verstuurd, herinneringen ingepland), zodat testers de hele route zien.
+// Geen printopdracht, en nooit mail naar het bedrijf (dat bewaakt lib/verstuur.ts ook zelf).
+async function alsTest(zaak: Klaar, toelichting: string, nu: string, route: "email" | "post"): Promise<{ melding: string } | void> {
+  const admin = createAdminClient()
+
+  const { data: vergrendeld } = await admin
+    .from("zaken")
+    .update({ status: "verstuurd", verstuurd_op: new Date().toISOString() })
+    .eq("id", zaak.id)
+    .eq("status", "concept")
+    .select("id, user_id")
+  if (!vergrendeld?.length) redirect(`/aanvragen/${zaak.id}/verstuurd`)
+
+  const brief = maakBrief({ ...zaak.brief, plan: zaak.plan, datum: nu, toelichting, route })
+  const regel = testversieRegel(zaak.brief.schuldeiser.naam)
+
+  const verzonden = await verstuurMail({
+    soort: "gebruiker",
+    vanNaam: "Betaalpauze",
+    vanAdres: AFZENDER_BRIEF,
+    aan: zaak.brief.afzender.email,
+    onderwerp: `[Testversie] ${brief.onderwerp}`,
+    react: BriefMail({ brief, testversie: regel }),
+    tekst: `${regel}\n\n${briefAlsTekst(brief)}`,
+    bijlagen: [
+      { bestandsnaam: `betaalvoorstel-${zaak.brief.factuur.factuurnummer}.pdf`, inhoud: await maakPdf(brief, regel) },
+    ],
+  })
+
+  if ("fout" in verzonden) {
+    await admin.from("zaken").update({ status: "concept", verstuurd_op: null }).eq("id", zaak.id)
+    console.error("Testbrief versturen mislukt:", verzonden.fout)
+    return { melding: "Versturen lukte niet. Probeer het over een paar minuten opnieuw." }
+  }
+
+  await admin.from("brieven").insert({
+    zaak_id: zaak.id,
+    betaalplan_id: await planId(zaak.id),
+    tekst: briefAlsTekst(brief),
+    toelichting: toelichting || null,
+    resend_id: verzonden.id,
+    verstuurd_op: new Date().toISOString(),
+  })
+
+  await planBerichten(zaak.id, nu)
+
+  await admin.from("events").insert({
+    user_id: vergrendeld[0].user_id,
+    zaak_id: zaak.id,
+    naam: "brief_verstuurd",
+    data: { route, resend_id: verzonden.id, beta: true },
   })
 
   redirect(`/aanvragen/${zaak.id}/verstuurd`)

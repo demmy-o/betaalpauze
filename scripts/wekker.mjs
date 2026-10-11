@@ -2,7 +2,8 @@
 // Gebruik (met npm run dev aan):
 //   npm run wekker                 -> vandaag
 //   npm run wekker -- 2026-11-07   -> doen alsof het 7 november 2026 is
-// Een eigen datum werkt alleen als MAIL_TEST_MODE aan staat. Dan gaat alle mail naar het testadres.
+// Een eigen datum werkt alleen als MAIL_TEST_MODE of MAIL_BETA aan staat.
+// Testmodus: alle mail naar het testadres. Bètaversie: mail naar de testers zelf.
 
 const datum = process.argv[2]
 const basis = process.env.WEKKER_URL ?? "http://localhost:3000"

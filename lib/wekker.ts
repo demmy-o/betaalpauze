@@ -141,6 +141,7 @@ export async function draaiWekker(datum: string, basisUrl: string): Promise<Uits
 
     const verzonden = ontvanger.email
       ? await verstuurMail({
+          soort: "gebruiker",
           vanNaam: "Betaalpauze",
           vanAdres: AFZENDER,
           aan: ontvanger.email,
