@@ -213,6 +213,19 @@ try {
     check("A kan een schuldeiser niet verwijderen", !!sdNog)
   }
 
+  // partner_aanmeldingen: alleen de server. Ingelogd of niet, je kunt niets lezen of toevoegen.
+  const nepAanmelding = { naam: "Nep", organisatie: "Nep", email: "nep@voorbeeld.nl", ip_hash: "x" }
+  const { data: aanmLezen, error: aanmLeesFout } = await a.client.from("partner_aanmeldingen").select("id").limit(1)
+  check("A kan de partneraanmeldingen niet lezen", !!aanmLeesFout || (aanmLezen ?? []).length === 0)
+  const { error: aanmToevoegFout } = await a.client.from("partner_aanmeldingen").insert(nepAanmelding)
+  check("A kan geen partneraanmelding toevoegen", !!aanmToevoegFout)
+
+  const bezoeker = createClient(url, anonKey, geenSessie)
+  const { data: bezLezen, error: bezLeesFout } = await bezoeker.from("partner_aanmeldingen").select("id").limit(1)
+  check("Zonder inloggen kun je de partneraanmeldingen niet lezen", !!bezLeesFout || (bezLezen ?? []).length === 0)
+  const { error: bezToevoegFout } = await bezoeker.from("partner_aanmeldingen").insert(nepAanmelding)
+  check("Zonder inloggen kun je geen partneraanmelding toevoegen", !!bezToevoegFout)
+
   // Zonder inloggen zie je niets
   const anoniem = createClient(url, anonKey, geenSessie)
   const { data: zakenAnoniem } = await anoniem.from("zaken").select("id")

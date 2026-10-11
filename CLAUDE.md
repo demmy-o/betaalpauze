@@ -104,7 +104,7 @@ Tijdens de MVP werken we op de branch `mvp`. Een push naar `main` gaat meteen li
 
 ## Omgevingsvariabelen
 
-Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde tien:
+Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde elf:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -117,9 +117,10 @@ KVK_API_KEY=
 MAIL_TEST_MODE=
 MAIL_TEST_ADDRESS=
 WEKKER_GEHEIM=
+IP_ZOUT=
 ```
 
-`WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus).
+`WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). `IP_ZOUT` is het geheime zout voor de IP-hash bij de limiet op /partners (lib/ip.ts); zonder zout slaat het formulier niets op. Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus).
 
 ## Scripts voor beheer (lokaal, met de sleutels uit `.env.local`)
 
