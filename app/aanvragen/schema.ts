@@ -2,18 +2,74 @@ import { z } from "zod"
 
 // De regels per stap. Elke foutmelding zegt wat er mis is en wat je kunt doen.
 
-export const schuldeiserSchema = z.object({
-  kvkNummer: z.string().regex(/^\d{8}$/, "Kies een bedrijf uit de lijst."),
-  naam: z.string().min(1, "Kies een bedrijf uit de lijst."),
-  straat: z.string().optional(),
-  postcode: z.string().optional(),
-  plaats: z.string().optional(),
-  email: z
-    .string()
-    .trim()
-    .min(1, "Vul het e-mailadres van het bedrijf in. Het staat meestal op de factuur.")
-    .email("Dit e-mailadres klopt niet helemaal. Check of je geen typefout hebt gemaakt."),
-})
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const POSTCODE = /^\d{4}\s?[a-zA-Z]{2}$/
+
+// Stap 1: het bedrijf, en hoe de brief verstuurd wordt.
+// route "email": we mailen de brief. route "post": Betaalpauze stuurt hem per post.
+// Bij post zonder volledig adres van het bedrijf vult de gebruiker het adres van de factuur in.
+// Ook als het adres wel bekend is, mag de gebruiker het adres van de factuur gebruiken.
+export const schuldeiserSchema = z
+  .object({
+    schuldeiserId: z.string().optional(), // uit onze eigen lijst
+    kvkNummer: z.string().optional(),
+    naam: z.string(),
+    straat: z.string().optional(),
+    postcode: z.string().optional(),
+    plaats: z.string().optional(),
+    // Alleen om de melding in stap 1 te kunnen tonen als je terugkomt.
+    regelingVia: z.string().optional(),
+    regelingUrl: z.string().optional(),
+    regelingTelefoon: z.string().optional(),
+    regelingOpmerking: z.string().optional(),
+    route: z.string(),
+    email: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || EMAIL.test(v), "Dit e-mailadres klopt niet helemaal. Check of je geen typefout hebt gemaakt."),
+    // "ja" als de gebruiker een ander adres van de factuur wil gebruiken dan het bekende adres.
+    postAdresAnders: z.string().optional(),
+    postStraat: z.string().trim().optional(),
+    postPostcode: z
+      .string()
+      .trim()
+      .optional()
+      .refine((v) => !v || POSTCODE.test(v), "Een postcode heeft 4 cijfers en 2 letters, zoals 1234 AB."),
+    postPlaats: z.string().trim().optional(),
+  })
+  .superRefine((s, ctx) => {
+    if (!s.schuldeiserId && !/^\d{8}$/.test(s.kvkNummer ?? "")) {
+      ctx.addIssue({ code: "custom", path: ["kvkNummer"], message: "Kies een bedrijf uit de lijst." })
+      return
+    }
+    if (s.route !== "email" && s.route !== "post") {
+      ctx.addIssue({ code: "custom", path: ["route"], message: "Kies hoe je de brief wilt laten versturen." })
+      return
+    }
+    if (s.route === "email" && !s.email) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["email"],
+        message: "Vul het e-mailadres van het bedrijf in. Het staat meestal op de factuur.",
+      })
+    }
+    const eigenAdresNodig = s.postAdresAnders === "ja" || !(s.straat && s.postcode && s.plaats)
+    if (s.route === "post" && eigenAdresNodig) {
+      if (!s.postStraat || !/\d/.test(s.postStraat)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["postStraat"],
+          message: "Vul de straat en het huisnummer van het bedrijf in, of de postbus. Het staat op de factuur.",
+        })
+      }
+      if (!s.postPostcode) {
+        ctx.addIssue({ code: "custom", path: ["postPostcode"], message: "Vul de postcode van het bedrijf in." })
+      }
+      if (!s.postPlaats) {
+        ctx.addIssue({ code: "custom", path: ["postPlaats"], message: "Vul de plaats van het bedrijf in." })
+      }
+    }
+  })
 
 // Bedrag zoals mensen het typen: 248, 248,50 of 1.248,50
 const BEDRAG = /^(\d{1,3}(\.\d{3})+|\d+)(,\d{1,2})?$/

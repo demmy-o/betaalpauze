@@ -33,17 +33,27 @@ export async function POST(request: NextRequest) {
   const admin = createAdminClient()
   const { data: bekend } = await admin
     .from("schuldeisers")
-    .select("id, straat, postcode, plaats, email, onbestelbaar")
+    .select("id, straat, postcode, plaats, email, onbestelbaar, regeling_via, regeling_url, telefoon, opmerking")
     .eq("kvk_nummer", kvkNummer)
     .maybeSingle()
 
   const bekendEmail = bekend && !bekend.onbestelbaar ? bekend.email ?? undefined : undefined
+  // Wat we weten over hoe dit bedrijf een regeling wil ontvangen (alleen bij onze eigen lijst).
+  const regeling = bekend?.regeling_via
+    ? {
+        via: bekend.regeling_via,
+        url: bekend.regeling_url ?? undefined,
+        telefoon: bekend.telefoon ?? undefined,
+        opmerking: bekend.opmerking ?? undefined,
+      }
+    : undefined
 
   // 1. Al bekend met volledig adres: geen nieuwe opvraging.
   if (bekend?.postcode) {
     return NextResponse.json({
       adres: { straat: bekend.straat, postcode: bekend.postcode, plaats: bekend.plaats },
       bekendEmail,
+      regeling,
     })
   }
 
@@ -75,10 +85,18 @@ export async function POST(request: NextRequest) {
       plaats: adres.plaats ?? null,
       gecontroleerd_op: adres.postcode ? new Date().toISOString().slice(0, 10) : null,
     }
-    if (bekend) await admin.from("schuldeisers").update(rij).eq("id", bekend.id)
-    else await admin.from("schuldeisers").insert(rij)
+    // Al bekend (bijvoorbeeld uit onze eigen lijst)? Dan alleen het adres aanvullen,
+    // niet de naam of de controledatum van de lijst overschrijven.
+    if (bekend) {
+      await admin
+        .from("schuldeisers")
+        .update({ straat: rij.straat, postcode: rij.postcode, plaats: rij.plaats })
+        .eq("id", bekend.id)
+    } else {
+      await admin.from("schuldeisers").insert(rij)
+    }
 
-    return NextResponse.json({ adres, bekendEmail })
+    return NextResponse.json({ adres, bekendEmail, regeling })
   } catch {
     return NextResponse.json({ fout: "Het adres ophalen bij de KVK lukt nu even niet." }, { status: 502 })
   }

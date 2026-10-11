@@ -195,6 +195,24 @@ try {
   const { data: termijnNog } = await admin.from("termijnen").select("id").eq("id", termijn.id).maybeSingle()
   check("A kan de eigen termijn niet verwijderen", !!termijnNog)
 
+  // schuldeisers is een gedeelde lijst: iedereen die ingelogd is mag lezen, alleen de server schrijft.
+  const { data: lijst } = await a.client.from("schuldeisers").select("id, email, naam").limit(1)
+  check("A kan de lijst met schuldeisers lezen", (lijst ?? []).length === 1)
+  const doel = lijst?.[0]
+
+  const { error: sdToevoegFout } = await a.client.from("schuldeisers").insert({ naam: "Nepbedrijf B.V." })
+  check("A kan geen schuldeiser toevoegen", !!sdToevoegFout)
+
+  if (doel) {
+    await a.client.from("schuldeisers").update({ email: "nep@voorbeeld.nl", naam: "Nep" }).eq("id", doel.id)
+    const { data: sdNa } = await admin.from("schuldeisers").select("email, naam").eq("id", doel.id).single()
+    check("A kan een schuldeiser niet aanpassen", sdNa?.email === doel.email && sdNa?.naam === doel.naam)
+
+    await a.client.from("schuldeisers").delete().eq("id", doel.id)
+    const { data: sdNog } = await admin.from("schuldeisers").select("id").eq("id", doel.id).maybeSingle()
+    check("A kan een schuldeiser niet verwijderen", !!sdNog)
+  }
+
   // Zonder inloggen zie je niets
   const anoniem = createClient(url, anonKey, geenSessie)
   const { data: zakenAnoniem } = await anoniem.from("zaken").select("id")

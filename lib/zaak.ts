@@ -11,6 +11,7 @@ export type ZaakMetPlan = {
   bedragCenten: number
   status: string
   schuldeiserEmail: string | null
+  verzendroute: "email" | "post" | null
   plan: (Plan & { aangemaakt: string }) | null
   brief: Omit<BriefGegevens, "plan" | "datum" | "toelichting"> | null
 }
@@ -27,7 +28,7 @@ export async function haalZaak(zaakId: string): Promise<ZaakMetPlan | null> {
   const { data: zaak } = await supabase
     .from("zaken")
     .select(
-      "id, factuurnummer, factuurdatum, bedrag_centen, klantnummer, status, schuldeiser_email, schuldeisers(naam, straat, postcode, plaats)"
+      "id, factuurnummer, factuurdatum, bedrag_centen, klantnummer, status, schuldeiser_email, verzendroute, post_straat, post_postcode, post_plaats, schuldeisers(naam, straat, postcode, plaats)"
     )
     .eq("id", zaakId)
     .maybeSingle()
@@ -55,6 +56,7 @@ export async function haalZaak(zaakId: string): Promise<ZaakMetPlan | null> {
     bedragCenten: zaak.bedrag_centen,
     status: zaak.status,
     schuldeiserEmail: zaak.schuldeiser_email,
+    verzendroute: zaak.verzendroute,
     plan: planRij ? naarPlan(planRij, zaak.bedrag_centen) : null,
     brief:
       profiel && schuldeiser
@@ -67,12 +69,20 @@ export async function haalZaak(zaakId: string): Promise<ZaakMetPlan | null> {
               plaats: profiel.plaats ?? "",
               email: user.email ?? "",
             },
-            schuldeiser: {
-              naam: schuldeiser.naam,
-              straat: schuldeiser.straat ?? undefined,
-              postcode: schuldeiser.postcode ?? undefined,
-              plaats: schuldeiser.plaats ?? undefined,
-            },
+            // Heeft de gebruiker een postadres van de factuur opgegeven, dan gaat dat voor.
+            schuldeiser: zaak.post_straat
+              ? {
+                  naam: schuldeiser.naam,
+                  straat: zaak.post_straat,
+                  postcode: zaak.post_postcode ?? undefined,
+                  plaats: zaak.post_plaats ?? undefined,
+                }
+              : {
+                  naam: schuldeiser.naam,
+                  straat: schuldeiser.straat ?? undefined,
+                  postcode: schuldeiser.postcode ?? undefined,
+                  plaats: schuldeiser.plaats ?? undefined,
+                },
             factuur: {
               factuurnummer: zaak.factuurnummer,
               factuurdatum: zaak.factuurdatum,

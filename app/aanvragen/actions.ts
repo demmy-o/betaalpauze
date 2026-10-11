@@ -1,7 +1,6 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { logEvent } from "@/lib/events"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { magMailen } from "@/lib/mail"
 import { zoekOpNummer } from "@/lib/kvk"
@@ -53,32 +52,63 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
     return { ok: false, melding: "Deze code klopt niet of is verlopen. Vraag een nieuwe code aan." }
   }
 
-  // 2. Schuldeiser opzoeken (meestal al bewaard bij het kiezen in stap 1) of toevoegen.
+  // 2. Schuldeiser: uit onze eigen lijst (op id), anders op KVK-nummer.
+  //    Naam en adres komen altijd uit onze lijst of van de KVK zelf, nooit uit de browser.
   const admin = createAdminClient()
-  const { data: bestaand } = await admin
-    .from("schuldeisers")
-    .select("id")
-    .eq("kvk_nummer", schuldeiser.kvkNummer)
-    .maybeSingle()
+  let schuldeiserId: string | undefined
+  let regelingVia: string | null = null
+  let adresVanBedrijfCompleet = false
 
-  // Nog niet bekend: naam en adres van de KVK zelf, nooit uit de browser.
-  let schuldeiserId = bestaand?.id
-  if (!schuldeiserId) {
-    const bedrijf = await zoekOpNummer(schuldeiser.kvkNummer).catch(() => null)
-    if (!bedrijf) return { ok: false, melding: "We konden dit bedrijf niet vinden bij de KVK. Kies het bedrijf opnieuw in stap 1." }
-    const { data: nieuw, error } = await admin
+  if (schuldeiser.schuldeiserId) {
+    const { data } = await admin
       .from("schuldeisers")
-      .insert({
-        naam: bedrijf.naam,
-        kvk_nummer: bedrijf.kvkNummer,
-        straat: bedrijf.straat ?? null,
-        plaats: bedrijf.plaats ?? null,
-      })
-      .select("id")
-      .single()
-    if (error) return { ok: false, melding: "Opslaan lukte niet. Probeer het opnieuw." }
-    schuldeiserId = nieuw.id
+      .select("id, regeling_via, straat, postcode, plaats")
+      .eq("id", schuldeiser.schuldeiserId)
+      .maybeSingle()
+    if (!data) return { ok: false, melding: "We konden dit bedrijf niet meer vinden. Kies het bedrijf opnieuw in stap 1." }
+    schuldeiserId = data.id
+    regelingVia = data.regeling_via
+    adresVanBedrijfCompleet = Boolean(data.straat && data.postcode && data.plaats)
+  } else if (schuldeiser.kvkNummer) {
+    const { data: bestaand } = await admin
+      .from("schuldeisers")
+      .select("id, regeling_via, straat, postcode, plaats")
+      .eq("kvk_nummer", schuldeiser.kvkNummer)
+      .maybeSingle()
+    schuldeiserId = bestaand?.id
+    regelingVia = bestaand?.regeling_via ?? null
+    adresVanBedrijfCompleet = Boolean(bestaand?.straat && bestaand?.postcode && bestaand?.plaats)
+
+    if (!schuldeiserId) {
+      const bedrijf = await zoekOpNummer(schuldeiser.kvkNummer).catch(() => null)
+      if (!bedrijf) return { ok: false, melding: "We konden dit bedrijf niet vinden bij de KVK. Kies het bedrijf opnieuw in stap 1." }
+      const { data: nieuw, error } = await admin
+        .from("schuldeisers")
+        .insert({
+          naam: bedrijf.naam,
+          kvk_nummer: bedrijf.kvkNummer,
+          straat: bedrijf.straat ?? null,
+          plaats: bedrijf.plaats ?? null,
+        })
+        .select("id")
+        .single()
+      if (error) return { ok: false, melding: "Opslaan lukte niet. Probeer het opnieuw." }
+      schuldeiserId = nieuw.id
+    }
   }
+  if (!schuldeiserId) return { ok: false, melding: "Kies het bedrijf opnieuw in stap 1." }
+
+  const route = schuldeiser.route === "post" ? "post" : "email"
+  // Per post met het adres dat de gebruiker van de factuur overnam: als het adres van het bedrijf
+  // niet compleet is, of als de gebruiker een ander adres koos. Dat komt op de zaak, nooit in schuldeisers.
+  const postadres =
+    route === "post" && (!adresVanBedrijfCompleet || schuldeiser.postAdresAnders === "ja")
+      ? {
+          post_straat: schuldeiser.postStraat ?? null,
+          post_postcode: schuldeiser.postPostcode ? netjesPostcode(schuldeiser.postPostcode) : null,
+          post_plaats: schuldeiser.postPlaats ?? null,
+        }
+      : {}
 
   // 3. Profiel en zaak bewaren als de gebruiker zelf (row level security geldt).
   const { error: profielFout } = await supabase
@@ -97,7 +127,7 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
     .from("zaken")
     .insert({
       schuldeiser_id: schuldeiserId,
-      schuldeiser_email: schuldeiser.email.toLowerCase(),
+      schuldeiser_email: route === "email" ? schuldeiser.email.toLowerCase() : null,
       factuurnummer: factuur.factuurnummer,
       factuurdatum: factuur.factuurdatum,
       bedrag_centen: naarCenten(factuur.bedrag),
@@ -107,7 +137,20 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
     .single()
   if (zaakFout) return { ok: false, melding: "Opslaan lukte niet. Probeer het opnieuw." }
 
-  await logEvent("aanvraag_stap4_bevestigd", zaak.id)
+  // De route en een eventueel postadres zet de server; gebruikers mogen die kolommen niet schrijven.
+  const { error: routeFout } = await admin.from("zaken").update({ verzendroute: route, ...postadres }).eq("id", zaak.id)
+  if (routeFout) return { ok: false, melding: "Opslaan lukte niet. Probeer het opnieuw." }
+
+  await admin.from("events").insert([
+    { user_id: sessie.user.id, zaak_id: zaak.id, naam: "aanvraag_stap4_bevestigd", data: {} },
+    {
+      user_id: sessie.user.id,
+      zaak_id: zaak.id,
+      naam: "route_gekozen",
+      // reden: wat we van dit bedrijf wisten (email, portaal, formulier, telefoon) of "onbekend"
+      data: { route, reden: regelingVia ?? "onbekend", postadres_ingevuld: "post_straat" in postadres },
+    },
+  ])
 
   return { ok: true, zaakId: zaak.id }
 }
