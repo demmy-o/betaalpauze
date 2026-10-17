@@ -5,12 +5,18 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { haalZaak, type ZaakMetPlan } from "@/lib/zaak"
 import { rekenPlan, vandaag } from "@/lib/betaalplan"
 import { MAX_TOELICHTING, briefAlsTekst, maakBrief } from "@/lib/brief"
-import { maakPdf } from "@/lib/briefPdf"
+import { probeerPdf } from "@/lib/briefPdf"
 import { vervangConceptPlan } from "@/lib/planOpslaan"
 import { AFZENDER_BRIEF, mailBeta, testversieRegel, verstuurMail } from "@/lib/verstuur"
 import { planBerichten } from "@/lib/wekker"
 import { BriefMail } from "@/emails/BriefMail"
 import { PostMelding } from "@/emails/PostMelding"
+
+// De brief als PDF-bijlage. Lukt de PDF niet, dan gaat de mail zonder bijlage: de brief staat ook in de mail zelf.
+async function pdfBijlage(bestandsnaam: string, brief: Parameters<typeof probeerPdf>[0], testversie?: string) {
+  const inhoud = await probeerPdf(brief, testversie)
+  return inhoud ? [{ bestandsnaam, inhoud }] : []
+}
 
 type Klaar = ZaakMetPlan & { brief: NonNullable<ZaakMetPlan["brief"]>; plan: NonNullable<ZaakMetPlan["plan"]> }
 
@@ -93,7 +99,7 @@ async function perMail(zaak: Klaar, toelichting: string, nu: string): Promise<{ 
     onderwerp: brief.onderwerp,
     react: BriefMail({ brief }),
     tekst: briefAlsTekst(brief),
-    bijlagen: [{ bestandsnaam: `betaalvoorstel-${zaak.brief.factuur.factuurnummer}.pdf`, inhoud: await maakPdf(brief) }],
+    bijlagen: await pdfBijlage(`betaalvoorstel-${zaak.brief.factuur.factuurnummer}.pdf`, brief),
   })
 
   if ("fout" in verzonden) {
@@ -233,9 +239,7 @@ async function alsTest(zaak: Klaar, toelichting: string, nu: string, route: "ema
     onderwerp: `[Testversie] ${brief.onderwerp}`,
     react: BriefMail({ brief, testversie: regel }),
     tekst: `${regel}\n\n${briefAlsTekst(brief)}`,
-    bijlagen: [
-      { bestandsnaam: `betaalvoorstel-${zaak.brief.factuur.factuurnummer}.pdf`, inhoud: await maakPdf(brief, regel) },
-    ],
+    bijlagen: await pdfBijlage(`betaalvoorstel-${zaak.brief.factuur.factuurnummer}.pdf`, brief, regel),
   })
 
   if ("fout" in verzonden) {

@@ -8,6 +8,8 @@ export default defineConfig({
   resolve: {
     alias: { "server-only": fileURLToPath(new URL("./scripts/hulp/server-only.ts", import.meta.url)) },
   },
+  // JSX vertalen (Next laat dat in tsconfig aan zichzelf over). Nodig voor de PDF-test (lib/briefPdf.tsx).
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     include: ["lib/**/*.test.ts", "app/**/*.test.ts"],
   },

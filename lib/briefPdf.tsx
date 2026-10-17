@@ -6,6 +6,8 @@ import type { Brief } from "./brief"
 //
 // De PDF-bibliotheek laden we pas als er een PDF gemaakt wordt (dynamische import).
 // Zo werkt dit bestand zowel in de app als in lokale scripts (npm run post).
+// webpackIgnore: de bouwtool laat de import staan zoals hij is. Anders laadt de server de bibliotheek al
+// bij het opstarten, en kan een fout daarin (zoals een ontbrekend lettertype) de hele server laten crashen.
 type Pdf = typeof import("@react-pdf/renderer")
 
 const INKT = "#1c1b2e"
@@ -79,6 +81,31 @@ function BriefDocument({ brief, pdf, testversie }: { brief: Brief; pdf: Pdf; tes
 
 // testversie: de regel bovenaan in de bètaversie ("Testversie: deze brief is niet naar ... gestuurd").
 export async function maakPdf(brief: Brief, testversie?: string): Promise<Buffer> {
-  const pdf = await import("@react-pdf/renderer")
+  await controleerLettertypes()
+  const pdf: Pdf = await import(/* webpackIgnore: true */ "@react-pdf/renderer")
   return pdf.renderToBuffer(<BriefDocument brief={brief} pdf={pdf} testversie={testversie} />)
+}
+
+// Ontbreken de standaardlettertypes van pdfkit (zoals Helvetica), dan laat de PDF-bibliotheek bij het laden
+// fouten los die niemand opvangt. Op Netlify laat zo'n fout het hele verzoek crashen. Daarom kijken we eerst
+// of de lettertypes er zijn, en geven we anders een gewone fout die we wel kunnen opvangen.
+// We laden het lettertype op dezelfde manier en vanaf dezelfde plek als de bibliotheek zelf.
+async function controleerLettertypes() {
+  const lettertype = "pdfkit/standard-fonts/Helvetica"
+  try {
+    await import(/* webpackIgnore: true */ lettertype)
+  } catch {
+    throw new Error("De lettertypes van pdfkit ontbreken (pdfkit/standard-fonts). Zie next.config.ts.")
+  }
+}
+
+// Maakt de PDF, of geeft null als dat niet lukt. Voor een bijlage bij een mail: een mislukte PDF
+// mag het versturen niet tegenhouden, de brief staat ook als tekst in de mail.
+export async function probeerPdf(brief: Brief, testversie?: string): Promise<Buffer | null> {
+  try {
+    return await maakPdf(brief, testversie)
+  } catch (fout) {
+    console.error("PDF maken mislukt:", fout)
+    return null
+  }
 }
