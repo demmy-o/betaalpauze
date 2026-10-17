@@ -95,6 +95,8 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
       zet("postcode", data.adres.postcode ?? "")
       zet("plaats", data.adres.plaats ?? "")
       zetRegeling({ regeling: data.regeling, email: data.bekendEmail })
+      // Daglimiet voor de KVK bereikt: het adres is niet compleet, de gebruiker vult het zelf in.
+      if (data.melding) setAdresFout(data.melding)
     } catch {
       setAdresFout("Het volledige adres ophalen lukte niet. Je kunt gewoon verder.")
     } finally {

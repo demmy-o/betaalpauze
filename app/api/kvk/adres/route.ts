@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { z } from "zod"
 import { haalAdres, zoekOpNummer } from "@/lib/kvk"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { MELDING_LIMIET, reserveerBetaaldeOpvraging } from "@/lib/kvkLimiet"
 
 // POST /api/kvk/adres  { kvkNummer }
 // Wordt aangeroepen als iemand in stap 1 een bedrijf kiest.
@@ -9,6 +10,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
 // 2. Zo niet: naam en vestiging opzoeken (gratis), het vestigingsprofiel opvragen
 //    (kost geld) en alles bewaren. Zo kost elk bedrijf maar één keer geld.
 // We gebruiken alleen het KVK-nummer uit de browser. Naam en adres komen altijd van de KVK zelf.
+// Daglimiet (lib/kvkLimiet.ts): boven de limiet geen betaalde opvraging meer. Dan sturen we wat we weten
+// (naam, straat en plaats uit het gratis zoeken) met een melding, en vult de gebruiker het postadres zelf in.
 
 const Verzoek = z.object({ kvkNummer: z.string().regex(/^\d{8}$/) })
 
@@ -72,6 +75,10 @@ export async function POST(request: NextRequest) {
       const bezoeker = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "onbekend"
       if (!magOpvragen(bezoeker)) {
         return NextResponse.json({ fout: "Te veel opvragingen. Probeer het over een uur opnieuw." }, { status: 429 })
+      }
+      // Daglimiet voor de hele site bereikt? Dan geen betaalde opvraging, en ook niets opslaan.
+      if (!(await reserveerBetaaldeOpvraging(admin))) {
+        return NextResponse.json({ adres, bekendEmail, regeling, melding: MELDING_LIMIET })
       }
       const volledig = await haalAdres(kvkNummer, bedrijf.vestigingsnummer)
       if (volledig) adres = volledig
