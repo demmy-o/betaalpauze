@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "server-only": [
+        "./scripts/hulp/server-only.ts"
+      ]
+    },
+    "jsx": "react-jsx"
+  }
+}

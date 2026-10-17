@@ -1,0 +1,124 @@
+import { Meta } from "@storybook/addon-docs/blocks"
+import { Kleurvlak, Kleurraster, Tekstkleur, Rol } from "./helpers"
+
+export const vlakken = [
+  { naam: "surface", token: "--color-surface", klasse: "bg-surface" },
+  { naam: "canvas", token: "--color-canvas", klasse: "bg-canvas" },
+  { naam: "mint", token: "--color-mint", klasse: "bg-mint" },
+  { naam: "mint-soft", token: "--color-mint-soft", klasse: "bg-mint-soft" },
+  { naam: "geel-tint", token: "--color-geel-tint", klasse: "bg-geel-tint" },
+  { naam: "rood-tint", token: "--color-rood-tint", klasse: "bg-rood-tint" },
+]
+
+<Meta title="Fundamenten/Kleuren" />
+
+# Kleuren
+
+Alle hoofdkleuren komen uit één palet: ink, leisteen, wit en vijf kleurfamilies met elk drie stappen.
+Daarnaast zijn er een paar **steunkleuren** voor tekst, lijnen en de pagina-achtergrond. Andere kleuren gebruiken we niet.
+
+## Palet
+
+Elke familie heeft drie stappen: **sterk** (icoon, stip, rand), **-soft** (vlak) en **-tint** (zachte achtergrond).
+
+<Kleurraster>
+  <Kleurvlak naam="ink" token="--color-ink" klasse="bg-ink" gebruik="Koppen, labels, primaire knop, focusring, links." />
+  <Kleurvlak naam="leisteen" token="--color-leisteen" klasse="bg-leisteen" gebruik="Tweede donkere kleur. Iconen, illustratielijnen." />
+  <Kleurvlak naam="surface" token="--color-surface" klasse="bg-surface" gebruik="Kaarten, invoervelden, meldingen." />
+</Kleurraster>
+
+### Mint: de vlakkleur
+
+<Kleurraster>
+  <Kleurvlak naam="mint" token="--color-mint" klasse="bg-mint" gebruik="Hero, zijbalk, illustratieblok, mobiel menu." />
+  <Kleurvlak naam="mint-soft" token="--color-mint-soft" klasse="bg-mint-soft" gebruik="Zachte sectie, gekozen keuzekaart." />
+  <Kleurvlak naam="mint-tint" token="--color-mint-tint" klasse="bg-mint-tint" gebruik="Hover, gekozen optie in een lijst." />
+</Kleurraster>
+
+### Rood: fout
+
+<Kleurraster>
+  <Kleurvlak naam="rood" token="--color-rood" klasse="bg-rood" gebruik="Icoon bij een fout, rand van een fout veld. Nooit voor tekst." />
+  <Kleurvlak naam="rood-soft" token="--color-rood-soft" klasse="bg-rood-soft" gebruik="Vlak." />
+  <Kleurvlak naam="rood-tint" token="--color-rood-tint" klasse="bg-rood-tint" gebruik="Achtergrond van een foutmelding." />
+</Kleurraster>
+
+### Groen: gelukt
+
+<Kleurraster>
+  <Kleurvlak naam="groen" token="--color-groen" klasse="bg-groen" gebruik="Icoon of stip bij 'gelukt'. Nooit voor tekst." />
+  <Kleurvlak naam="groen-soft" token="--color-groen-soft" klasse="bg-groen-soft" gebruik="Vlak." />
+  <Kleurvlak naam="groen-tint" token="--color-groen-tint" klasse="bg-groen-tint" gebruik="Achtergrond van een succesmelding of label." />
+</Kleurraster>
+
+### Geel: let op
+
+<Kleurraster>
+  <Kleurvlak naam="geel" token="--color-geel" klasse="bg-geel" gebruik="Icoon of stip bij 'let op'." />
+  <Kleurvlak naam="geel-soft" token="--color-geel-soft" klasse="bg-geel-soft" gebruik="Tag, zoals 'Nog niet online'." />
+  <Kleurvlak naam="geel-tint" token="--color-geel-tint" klasse="bg-geel-tint" gebruik="Achtergrond van een let-op-melding, testbalk." />
+</Kleurraster>
+
+### Grijs: neutraal
+
+<Kleurraster>
+  <Kleurvlak naam="grijs" token="--color-grijs" klasse="bg-grijs" gebruik="Icoon of stip bij een neutrale status." />
+  <Kleurvlak naam="grijs-soft" token="--color-grijs-soft" klasse="bg-grijs-soft" gebruik="Vlak." />
+  <Kleurvlak naam="grijs-tint" token="--color-grijs-tint" klasse="bg-grijs-tint" gebruik="Achtergrond van een neutrale melding of label." />
+</Kleurraster>
+
+## Status
+
+De statuskleuren verwijzen naar het palet. Gebruik in code de statusnaam, dan klopt de betekenis ook als het palet verandert.
+De tekst in een melding is altijd ink. Status nooit alleen met kleur: altijd een icoon of tekst erbij.
+
+<Kleurraster>
+  <Kleurvlak naam="error / error-tint" token="--color-error" klasse="bg-error" gebruik="Rood. Fout." />
+  <Kleurvlak naam="success / success-tint" token="--color-success" klasse="bg-success" gebruik="Groen. Gelukt." />
+  <Kleurvlak naam="warning / warning-tint" token="--color-warning" klasse="bg-warning" gebruik="Geel. Let op." />
+  <Kleurvlak naam="neutraal / neutraal-tint" token="--color-neutraal" klasse="bg-neutraal" gebruik="Grijs. Informatie, wacht op iets." />
+</Kleurraster>
+
+## Steunkleuren
+
+Voor tekst, lijnen en de pagina. Deze komen niet uit het palet.
+
+<Kleurraster>
+  <Kleurvlak naam="ink-soft" token="--color-ink-soft" klasse="bg-ink-soft" gebruik="Platte tekst en introtekst. De standaard." />
+  <Kleurvlak naam="ink-muted" token="--color-ink-muted" klasse="bg-ink-muted" gebruik="Hulptekst. In code text-muted-foreground." />
+  <Kleurvlak naam="subtle" token="--color-subtle" klasse="bg-subtle" gebruik="Placeholder, uitgeschakeld. Alleen op wit of canvas." />
+  <Kleurvlak naam="line" token="--color-line" klasse="bg-line" gebruik="Rand: scheidingslijn, kaartrand." />
+  <Kleurvlak naam="line-strong" token="--color-line-strong" klasse="bg-line-strong" gebruik="Rand van invoervelden, checkbox." />
+  <Kleurvlak naam="canvas" token="--color-canvas" klasse="bg-canvas" gebruik="Warme pagina-achtergrond." />
+  <Kleurvlak naam="canvas-donker" token="--color-canvas-donker" klasse="bg-canvas-donker" gebruik="Vlak om een groep invulvelden (Veldengroep)." />
+</Kleurraster>
+
+## Tekstkleuren
+
+Per tekstkleur zie je hoe hij op de achtergronden staat. Het contrast wordt live uit de tokens berekend. **AA** is goed
+voor alle tekst, **Alleen groot** mag voor koppen vanaf 24px en voor randen en iconen, **Niet doen** nooit voor tekst.
+
+<Tekstkleur naam="Tekst" token="--color-ink-soft" klasse="text-ink-soft" gebruik="Platte tekst en introtekst. De standaard." achtergronden={vlakken} />
+<Tekstkleur naam="Koppen en links" token="--color-ink" klasse="text-ink" gebruik="Display, koppen, labels, links (onderstreept)." achtergronden={vlakken} />
+<Tekstkleur naam="Hulptekst" token="--color-ink-muted" klasse="text-muted-foreground" gebruik="Hulptekst onder een label, 'Stap 2 van 6'." achtergronden={vlakken} />
+<Tekstkleur naam="Zacht" token="--color-subtle" klasse="text-subtle" gebruik="Placeholder, uitgeschakeld. Alleen op wit of canvas." achtergronden={vlakken} />
+<Tekstkleur naam="Op donker" token="--color-surface" klasse="text-primary-foreground" gebruik="Tekst op de primaire knop en in de footer." achtergronden={[{ naam: "ink", token: "--color-ink", klasse: "bg-ink text-primary-foreground" }, { naam: "leisteen", token: "--color-leisteen", klasse: "bg-leisteen text-primary-foreground" }]} />
+
+## Rollen in componenten
+
+De componenten uit shadcn gebruiken eigen namen, zoals `bg-primary` en `border-input`. Die verwijzen naar de tokens
+hierboven. Pas je een kleur aan, dan doe je dat bij de token in `app/globals.css`. De rollen volgen vanzelf.
+
+<Rol naam="primary" token="--primary" verwijst="ink" gebruik="Primaire knop, voortgang." />
+<Rol naam="primary-foreground" token="--primary-foreground" verwijst="surface" gebruik="Tekst op de primaire knop." />
+<Rol naam="secondary" token="--secondary" verwijst="canvas" gebruik="Zacht vlak achter een tweede knop of label." />
+<Rol naam="muted" token="--muted" verwijst="canvas" gebruik="Zacht vlak bij hover in menu's." />
+<Rol naam="muted-foreground" token="--muted-foreground" verwijst="ink-muted" gebruik="Hulptekst." />
+<Rol naam="accent" token="--accent" verwijst="mint-tint" gebruik="Gekozen optie in een lijst." />
+<Rol naam="accent-foreground" token="--accent-foreground" verwijst="ink" gebruik="Tekst van de gekozen optie." />
+<Rol naam="destructive" token="--destructive" verwijst="error (rood)" gebruik="Fout en verwijderen." />
+<Rol naam="border" token="--border" verwijst="line" gebruik="Kaartranden en scheidingslijnen." />
+<Rol naam="input" token="--input" verwijst="line-strong" gebruik="Rand van invoervelden." />
+<Rol naam="ring" token="--ring" verwijst="ink" gebruik="Focusring." />
+<Rol naam="background" token="--background" verwijst="surface" gebruik="Pagina." />
+<Rol naam="foreground" token="--foreground" verwijst="ink" gebruik="Standaard tekstkleur van shadcn." />

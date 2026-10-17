@@ -43,6 +43,28 @@ betaalpauze.nl/
 - **Motion** voor alle animaties, geen CSS keyframes
 - **Zod** voor validatie van formulierdata
 
+## Design system: eerst Storybook
+
+Storybook is de lijst van alle UI-onderdelen van Betaalpauze. Starten: `npm run storybook` (http://localhost:6006).
+Kleuren, tekst, vormen en beweging staan onder Fundamenten. De regels erachter staan in `docs/design.md`.
+
+**Voordat je een UI-onderdeel bouwt of aanpast** (knop, veld, kaart, melding, menu, kop, label, keuzeknop, enz.):
+
+1. **Zoek eerst of het al bestaat.**
+   - Met de Storybook MCP-server (`storybook`, werkt als Storybook draait): gebruik `docs-list` en daarna `docs-show` voor de props en voorbeelden.
+   - Draait Storybook niet? Zoek met Glob op `**/*.stories.tsx` en lees `stories/*.mdx`. Dat is dezelfde lijst.
+2. **Bestaat het?** Gebruik het. Maak geen eigen variant ernaast met losse Tailwind-klassen.
+3. **Past het bijna?** Pas het bestaande component aan en werk de story bij. Zeg in je samenvatting wat je veranderd hebt.
+4. **Bestaat het echt niet?** Bouw een nieuw component en maak er meteen een story bij. Zeg in je samenvatting dat het nieuw is.
+
+Verder:
+
+- **Een component is pas klaar met een story.** Zet `Naam.stories.tsx` naast het component. Gebruik een Nederlandse titel (`Formulier/Veld`), `tags: ["autodocs"]` en een korte beschrijving: wanneer gebruik je het en wanneer niet. Maak een story per toestand (standaard, fout, uitgeschakeld, bezig).
+- **Geen hex-waarden in code.** Gebruik de tokens uit `app/globals.css` (zie Fundamenten/Kleuren).
+- **Stories importeren geen server-code.** Bestanden met `server-only` of `"use server"` werken niet in Storybook. Houd het uiterlijk in een component zonder server-acties en geef de actie als prop mee.
+- **Na een wijziging aan een component of story:** draai `npm run build-storybook`. Die moet slagen. Controleer het ook in de browser, op mobiel en op desktop.
+- Hoort het nieuwe onderdeel op een lijst met vaste afspraken? Zet het dan ook in `stories/Welkom.mdx`.
+
 ## Referentie: v1 prototype
 
 Er is een eerder prototype op:
@@ -69,20 +91,44 @@ De site draait op **Netlify** (project `betaalpauze`, gekoppeld aan deze GitHub-
 - DNS staat bij mijn.host (A-record naar Netlify, www CNAME naar betaalpauze.netlify.app). Mail loopt via mijn.host.
 - Lees `docs/HOE-ZIT-HET.md` voor het volledige overzicht (accounts, DNS, wachtlijst, wat `v1/` is).
 
+## Bouwen aan de MVP (spelregels voor Claude Code)
+
+Wat we bouwen staat in `docs/mvp-v1.md`. De tickets staan in Notion: database Roadmap, weergave MVP-sprint.
+
+Hoe het eruitziet staat in `docs/design.md` (regels voor kleur, copy, formulieren, states en motion). De tokens staan in `app/globals.css`, gebaseerd op het palet uit Figma "Betaalpauze Design". Gebruik alleen kleuren uit dat palet (zie Fundamenten/Kleuren in Storybook). `docs/design-tokens.css` is alleen de referentie, niet importeren. Eén naam uit `design.md` heet in de code anders, omdat shadcn hem al gebruikt: design `muted` (tekstkleur) is `text-muted-foreground`.
+
+1. **Eén stap tegelijk.** Werk aan één ticket en begin niet aan het volgende.
+2. **Na elke stap testen in de browser.** Gebruik Playwright op http://localhost:3000 en kijk of het werkt zoals het ticket zegt.
+3. **Daarna stoppen voor akkoord.** Laat zien wat je gedaan en getest hebt, en wacht tot Demmy akkoord geeft.
+4. **Nooit `.env` committen.** Geen `.env*`, `node_modules`, `.next` of losse zip-bestanden.
+5. **Nooit mail naar een schuldeiser.** Lokaal werk je in testmodus (`MAIL_TEST_MODE=true`). De bètaversie draait met `MAIL_BETA=true`: dan gaat er nooit mail naar een schuldeiser.
+6. **Na elk ticket het ticket in Notion op Klaar zetten**, pas na akkoord van Demmy.
+
+### Vaste regels voor koppelingen
+
+- **Mail:** alleen via Resend, alleen vanaf een adres op @betaalpauze.nl, en altijd via `verstuurMail` in `lib/verstuur.ts`. Elke mail zegt voor wie hij is (`soort`: `schuldeiser`, `gebruiker` of `beheer`).
+  - **Testmodus** (`MAIL_TEST_MODE=true`): alle mail gaat naar `MAIL_TEST_ADDRESS`. Inloggen kan alleen met dat adres.
+  - **Bètaversie** (`MAIL_BETA=true`): **bij MAIL_BETA nooit mail naar een schuldeiser.** `verstuurMail` weigert elke mail met `soort: "schuldeiser"`, ook als iemand dat per ongeluk aanroept. Mail voor de gebruiker (code, brief, herinneringen) gaat naar de gebruiker zelf. De brief krijgt bovenaan "Testversie: deze brief is niet naar [bedrijf] gestuurd" (mail en PDF). De postroute stuurt geen printopdracht. Mail voor beheer gaat alleen naar `NOTIFY_EMAIL`. Inloggen kan met elk adres.
+  - **Extra slot:** mail met `soort: "schuldeiser"` gaat alleen weg als `MAIL_ECHT=true`. Anders weigert `verstuurMail` hem altijd, wat de andere variabelen ook zeggen. `MAIL_ECHT` staat bewust niet in de lijst hieronder en **niet in Netlify**. Zetten mag pas na ticket 18 en 19, en alleen met akkoord van Demmy.
+  - Op Netlify voor de bèta: `MAIL_BETA=true` en `MAIL_TEST_MODE=false`.
+  - Lokaal: `MAIL_TEST_MODE=true` en `MAIL_BETA=true`. Dan gaat alle mail naar het testadres, en de brief als testbrief.
+- **Supabase:** gebruik `SUPABASE_SECRET_KEY` alleen op de server, nooit in de browser of in een `NEXT_PUBLIC_*` variabele. Raak de bestaande tabel `signups` (de wachtlijst) niet aan.
+- **KVK:** gebruik de KVK-testomgeving zolang `KVK_API_KEY` leeg is.
+- **`v1/`** is een oud prototype. Niet aanraken.
+
 ## Git en pushen (regels voor Claude Code)
 
-Er is één branch: `main`. Volg bij elke wijziging deze stappen en stop als iets afwijkt:
+Tijdens de MVP werken we op de branch `mvp`. Een push naar `main` gaat meteen live via Netlify. Volg bij elke wijziging deze stappen en stop als iets afwijkt:
 
-1. `git status` en `git branch -a`: bevestig dat je op `main` staat. Bestaat er een andere lokale branch, laat die zien en vraag wat ermee moet. Maak zelf geen branches aan en merge niets.
-2. `git fetch origin` en `git status -sb`. Loopt `main` achter op `origin/main`, doe eerst `git pull --rebase origin main`.
-3. Toon de lijst met gewijzigde bestanden voordat je commit. Commit nooit `.env*`, `node_modules`, `.next` of losse zip-bestanden.
-4. Commit met een korte Nederlandse message in de stijl `feat: ...`, `fix: ...` of `chore: ...`.
-5. `git push origin main`.
-6. Meld daarna de commit-hash en dat Netlify nu automatisch bouwt (live na ongeveer een minuut).
+1. `git status` en `git branch -a`: bevestig dat je op `mvp` staat. Sta je op `main`, stop en vraag wat de bedoeling is. Merge niets.
+2. Toon de lijst met gewijzigde bestanden voordat je commit.
+3. Commit met een korte Nederlandse message in de stijl `feat: ...`, `fix: ...` of `chore: ...`.
+4. Push alleen na akkoord van Demmy, en alleen naar `mvp`. Push nooit naar `main` zonder akkoord.
+5. Meld daarna de commit-hash.
 
 ## Omgevingsvariabelen
 
-Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde vijf:
+Lokaal in `.env.local` (nooit committen), op productie in het Netlify-dashboard (Environment variables). Beide bevatten dezelfde dertien:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -90,7 +136,27 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 NOTIFY_EMAIL=
+SUPABASE_SECRET_KEY=
+KVK_API_KEY=
+MAIL_TEST_MODE=
+MAIL_TEST_ADDRESS=
+MAIL_BETA=
+WEKKER_GEHEIM=
+IP_ZOUT=
+BETA_WACHTWOORD=
 ```
+
+`WEKKER_GEHEIM` beschermt `/api/wekker` (de herinneringen). `IP_ZOUT` is het geheime zout voor de IP-hash bij de limiet op /partners (lib/ip.ts); zonder zout slaat het formulier niets op. Met de hand draaien: `npm run wekker -- JJJJ-MM-DD` (eigen datum alleen in testmodus of in de bètaversie).
+
+`BETA_WACHTWOORD` is het wachtwoord voor de bètaversie op `/beta` (lib/beta.ts). Achter het wachtwoord: `/aanvragen`, `/mijn-plan`, `/inloggen` en `/api/kvk`. Open: `/`, `/partners`, de wachtlijst, `/betaald` en `/api/wekker`. Is de variabele leeg, dan is de bètaversie dicht voor iedereen. Verander je het wachtwoord, dan moeten alle testers het opnieuw invullen.
+
+## Scripts voor beheer (lokaal, met de sleutels uit `.env.local`)
+
+- `npm run post -- <zaak-id of factuurnummer> <JJJJ-MM-DD> [--proef]`: een brief per post definitief maken en op verstuurd zetten. Draai het op de dag dat je de brief op de post doet. Het werkt alleen bij status `per_post`, toont eerst of `MAIL_TEST_MODE` aan staat en vraagt bevestiging. Met `--proef` verandert er niets.
+- `npm run vul-schuldeisers`: de eigen lijst met bekende schuldeisers bijwerken (`scripts/vul-schuldeisers.mjs`).
+- `npm run wekker -- JJJJ-MM-DD`: de herinneringen voor een datum met de hand versturen.
+
+Let op: na de livegang praten deze scripts met de echte database. Scripts in TypeScript draaien met `tsx` en `tsconfig.scripts.json`.
 
 Is een nieuwe env-var nodig? Zeg dat expliciet: die moet handmatig in Netlify worden toegevoegd, gevolgd door "Trigger deploy" (de `NEXT_PUBLIC_*` vars worden in de build ingebakken).
 
@@ -100,5 +166,5 @@ Repository: https://github.com/demmy-o/betaalpauze
 
 Workflow:
 1. Lokaal ontwikkelen: `npm run dev`
-2. Committen en pushen naar `main` (zie regels hierboven)
-3. Netlify deployt automatisch
+2. Committen op `mvp`, pushen alleen na akkoord (zie regels hierboven)
+3. Na samenvoegen met `main` deployt Netlify automatisch

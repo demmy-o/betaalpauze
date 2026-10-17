@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans, Noto_Serif } from "next/font/google";
 import "./globals.css";
 
+// Noto Serif voor koppen en lopende tekst, Noto Sans voor de interface (zie Figma en docs/design.md).
 const notoSans = Noto_Sans({ subsets: ["latin"], variable: "--font-sans" });
 const notoSerif = Noto_Serif({ subsets: ["latin"], variable: "--font-serif" });
 
@@ -19,7 +20,7 @@ export default function RootLayout({
   return (
     <html
       lang="nl"
-      className={`h-full antialiased font-sans ${notoSans.variable} ${notoSerif.variable}`}
+      className={`h-full antialiased font-serif ${notoSans.variable} ${notoSerif.variable}`}
     >
       <body className="min-h-full flex flex-col bg-canvas">{children}</body>
     </html>

@@ -9,9 +9,13 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next.nosync/**",
+    "node_modules.nosync/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Gebouwde Storybook (npm run build-storybook), niet in git.
+    "storybook-static/**",
   ]),
 ]);
 

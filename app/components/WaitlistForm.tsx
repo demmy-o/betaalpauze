@@ -5,6 +5,7 @@ import { subscribe, type SubscribeResult } from "../actions/subscribe"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Foutmelding } from "@/components/ui/foutmelding"
 
 const initialState: SubscribeResult = { status: "idle" }
 
@@ -13,7 +14,7 @@ export function WaitlistForm() {
 
   if (state.status === "success") {
     return (
-      <div className="rounded-[12px] bg-mint px-5 py-4 text-[15px] text-ink">
+      <div role="status" className="rounded-lg bg-surface p-6 text-base">
         Bedankt! Je staat op de lijst. We laten van ons horen zodra Betaalpauze
         live gaat.
       </div>
@@ -23,7 +24,7 @@ export function WaitlistForm() {
   return (
     <form action={formAction} className="flex flex-col gap-6" noValidate>
       <div className="flex flex-col gap-1">
-        <Label htmlFor="email" className="text-[14px] font-medium text-ink">
+        <Label htmlFor="email">
           E-mailadres
         </Label>
         <Input
@@ -32,36 +33,38 @@ export function WaitlistForm() {
           type="email"
           required
           placeholder="jouw@email.nl"
-          className="h-12 rounded-[12px] border-line bg-white px-4 text-[16px] text-ink placeholder:text-line md:text-[16px]"
+          aria-invalid={state.status === "invalid" ? true : undefined}
         />
 
         {state.status === "invalid" && (
-          <p className="text-[14px] text-[#a3251c]">
+          <Foutmelding>
             Dit e-mailadres klopt niet helemaal. Check of je geen typefout hebt
             gemaakt.
-          </p>
+          </Foutmelding>
         )}
         {state.status === "duplicate" && (
-          <p className="text-[14px] text-ink-soft">
+          <p className="text-sm">
             Dit e-mailadres staat al op de lijst.
           </p>
         )}
         {state.status === "error" && (
-          <p className="text-[14px] text-[#a3251c]">
+          <Foutmelding>
             Er ging iets mis. Probeer het zo nog eens.
-          </p>
+          </Foutmelding>
         )}
       </div>
 
       <Button
         type="submit"
         disabled={isPending}
-        className="h-12 self-start rounded-full bg-black px-[26px] text-[16px] font-medium text-white hover:bg-black/90"
+        variant="primair"
+        size="groot"
+        className="self-start"
       >
         {isPending ? "Bezig..." : "Houd me op de hoogte"}
       </Button>
 
-      <p className="text-[12px] leading-[1.6] text-line">
+      <p className="text-caption text-muted-foreground">
         Door je aan te melden ga je akkoord dat we je e-mailadres bewaren om je
         op de hoogte te houden. Je kunt je op elk moment afmelden.
       </p>

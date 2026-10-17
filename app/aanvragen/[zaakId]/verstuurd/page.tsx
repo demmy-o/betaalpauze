@@ -1,0 +1,126 @@
+import { notFound, redirect } from "next/navigation"
+import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+import { haalZaak } from "@/lib/zaak"
+import { datumLang, euro, plusDagen } from "@/lib/betaalplan"
+import { REACTIE_DAGEN } from "@/lib/brief"
+import { mailBeta } from "@/lib/verstuur"
+import { Pagina } from "@/components/ui/pagina"
+import { Kaart } from "@/components/ui/kaart"
+
+export const metadata = { title: "Verstuurd · Betaalpauze.nl" }
+
+// Scherm 7: je voorstel is verstuurd. Wat gebeurt er nu, en wanneer?
+export default async function VerstuurdPagina({ params }: { params: Promise<{ zaakId: string }> }) {
+  const { zaakId } = await params
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect("/inloggen")
+
+  const zaak = await haalZaak(zaakId)
+  if (!zaak?.brief || !zaak.plan) notFound()
+  if (zaak.status === "concept") redirect(`/aanvragen/${zaakId}/brief`)
+
+  if (zaak.status === "per_post") return <PerPost zaak={zaak} />
+
+  const { plan } = zaak
+  const eerste = plan.termijnen[0]
+  const reactieVoor = plusDagen(plan.aangemaakt, REACTIE_DAGEN)
+  const herinnering = plusDagen(eerste.vervaldatum, -3)
+  const beta = mailBeta()
+
+  return (
+    <Pagina kolom="breed">
+      <Kaart className="gap-3">
+        <h1 className="text-h2 text-ink">{beta ? "Je testbrief staat in je mailbox" : "Je voorstel is verstuurd"}</h1>
+        {beta ? (
+          <p className="text-base text-ink">
+            Dit is de testversie. Je brief is niet naar {zaak.brief.schuldeiser.naam} gestuurd. Je vindt hem in je
+            mailbox, op {zaak.brief.afzender.email}.
+          </p>
+        ) : (
+          <p className="text-base text-ink">
+            Je brief is naar {zaak.brief.schuldeiser.naam} gestuurd. Een kopie staat in je mailbox, op{" "}
+            {zaak.brief.afzender.email}.
+          </p>
+        )}
+      </Kaart>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
+        <ol className="flex flex-col gap-4">
+          {beta ? (
+            <Moment datum={reactieVoor} titel="Hier zou het bedrijf reageren">
+              In de echte versie heeft het bedrijf tot deze dag om te reageren. Nu komt er geen antwoord. Op Mijn plan
+              kun je zelf kiezen wat het bedrijf had kunnen zeggen.
+            </Moment>
+          ) : (
+            <Moment datum={reactieVoor} titel="Het bedrijf reageert">
+              Het bedrijf heeft tot deze dag om te reageren. Het antwoord komt direct in jouw mailbox, niet bij ons.
+            </Moment>
+          )}
+          <Moment datum={herinnering} titel="Wij sturen een herinnering">
+            Drie dagen voor je eerste betaling krijg je van ons een mail.
+          </Moment>
+          <Moment datum={eerste.vervaldatum} titel="Je eerste betaling">
+            Je betaalt <span className="tabular font-medium">{euro(eerste.bedragCenten)}</span> via je eigen bank.
+            Hoor je niets van het bedrijf? Dan begin je toch, zoals in je voorstel staat.
+          </Moment>
+        </ol>
+      </section>
+
+      <p className="text-sm text-muted-foreground">
+        Een voorstel is pas een afspraak als het bedrijf akkoord gaat. Krijg je een ander antwoord? Dan helpen we je
+        verder als je ons dat laat weten.
+      </p>
+
+      <Link
+        href={beta ? "/mijn-plan" : "/"}
+        className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft"
+      >
+        {beta ? "Naar Mijn plan" : "Naar de startpagina"}
+      </Link>
+    </Pagina>
+  )
+}
+
+// De brief is aangevraagd per post, maar nog niet verstuurd. Datums volgen pas als hij op de post is.
+function PerPost({ zaak }: { zaak: NonNullable<Awaited<ReturnType<typeof haalZaak>>> }) {
+  const s = zaak.brief!.schuldeiser
+  return (
+    <Pagina kolom="breed">
+      <Kaart className="gap-3">
+        <h1 className="text-h2 text-ink">We sturen je brief per post</h1>
+        <p className="text-base text-ink">
+          Je brief gaat naar {s.naam}, {s.straat}, {s.postcode} {s.plaats}. We doen hem binnen 2 werkdagen op de post.
+        </p>
+      </Kaart>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
+        <ol className="flex list-decimal flex-col gap-2 pl-5 text-base text-ink">
+          <li>Je krijgt een mail zodra de brief op de post is, met de brief als PDF.</li>
+          <li>Vanaf die dag heeft het bedrijf 14 dagen om te reageren. Het antwoord komt in jouw mailbox.</li>
+          <li>Rond elke betaling sturen we je een herinnering.</li>
+        </ol>
+      </section>
+
+      <Link href="/mijn-plan" className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft">
+        Naar Mijn plan
+      </Link>
+    </Pagina>
+  )
+}
+
+function Moment({ datum, titel, children }: { datum: string; titel: string; children: React.ReactNode }) {
+  return (
+    <li className="flex flex-col gap-1 rounded-lg border border-line bg-surface p-4">
+      <p className="text-sm text-muted-foreground">{datumLang(datum)}</p>
+      <p className="font-medium text-ink">{titel}</p>
+      <p className="text-sm text-ink">{children}</p>
+    </li>
+  )
+}
