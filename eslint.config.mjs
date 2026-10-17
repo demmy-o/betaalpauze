@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Gebouwde Storybook (npm run build-storybook), niet in git.
+    "storybook-static/**",
   ]),
 ]);
 
