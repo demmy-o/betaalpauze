@@ -2,16 +2,15 @@
 
 import { headers } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { hashIp, leesIp } from "@/lib/ip"
+import { hashIp, ipVoorLimiet, leesIp } from "@/lib/ip"
+import { MELDING_LIMIET, magAanmelden } from "@/lib/partnerLimiet"
 import { verstuurMail } from "@/lib/verstuur"
 import { EenvoudigeMail } from "@/emails/EenvoudigeMail"
 import { partnerSchema, type PartnerAanmelding } from "./schema"
 
 // Een aanmelding voor een pilot. Slaat op met de geheime sleutel (de tabel is dicht voor
 // iedereen behalve de server) en mailt Betaalpauze (NOTIFY_EMAIL).
-// Tegen spam: een honeypot-veld en maximaal 5 aanmeldingen per uur per IP-adres.
-
-const MAX_PER_UUR = 5
+// Tegen spam: een honeypot-veld en limieten per bezoeker en voor de hele site (lib/partnerLimiet.ts).
 export async function meldAan(
   gegevens: PartnerAanmelding,
   website: string // het honeypot-veld: mensen zien het niet, bots vullen het in
@@ -23,24 +22,17 @@ export async function meldAan(
   if (!controle.success) return { ok: false, melding: controle.error.issues[0]?.message ?? "Er klopt iets niet." }
   const g = controle.data
 
-  // Het IP-adres als hash met een geheim zout (lib/ip.ts). Zonder zout slaan we niets op.
+  // Het IP-adres als hash met een geheim zout (lib/ip.ts). Bij IPv6 alleen het /64-netwerk.
+  // Zonder zout slaan we niets op.
   const zout = process.env.IP_ZOUT
   if (!zout) {
     console.error("IP_ZOUT ontbreekt: partneraanmelding niet opgeslagen")
     return { ok: false, melding: "Versturen lukte niet. Probeer het over een paar minuten opnieuw." }
   }
-  const ipHash = hashIp(leesIp(await headers()), zout)
+  const ipHash = hashIp(ipVoorLimiet(leesIp(await headers())), zout)
 
   const admin = createAdminClient()
-  const uurGeleden = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  const { count } = await admin
-    .from("partner_aanmeldingen")
-    .select("*", { count: "exact", head: true })
-    .eq("ip_hash", ipHash)
-    .gte("created_at", uurGeleden)
-  if ((count ?? 0) >= MAX_PER_UUR) {
-    return { ok: false, melding: "Je hebt al een paar aanmeldingen gestuurd. Probeer het over een uur opnieuw." }
-  }
+  if (!(await magAanmelden(admin, ipHash))) return { ok: false, melding: MELDING_LIMIET }
 
   const { error } = await admin.from("partner_aanmeldingen").insert({
     naam: g.naam,
