@@ -11,11 +11,6 @@ export const metadata = {
 // Partnerpagina voor schuldeisers (ticket 15). Teksten van Demmy, niet aanpassen.
 // Opbouw volgens docs/design.md: brede pastelbanden, één boodschap per blok, formulier onderaan.
 
-function Placeholder({ children }: { children: React.ReactNode }) {
-  // Tekst tussen [haken] die Demmy later invult. Zichtbaar gemarkeerd, zodat hij niet vergeten wordt.
-  return <span className="rounded-sm bg-warning-tint px-1 outline outline-1 outline-dashed outline-warning">{children}</span>
-}
-
 function Band({ kleur, children }: { kleur: string; children: React.ReactNode }) {
   return (
     <section className={`band ${kleur}`}>
@@ -131,8 +126,7 @@ export default function PartnersPagina() {
                 en wat zijn jullie grenzen, zoals een minimaal bedrag of een maximale pauze.
               </>,
               <>
-                <span className="font-medium">Testen.</span> <Placeholder>[duur, bijvoorbeeld drie maanden]</Placeholder>. Je
-                krijgt elke maand de cijfers.
+                <span className="font-medium">Testen.</span> Drie maanden. Je krijgt elke maand de cijfers.
               </>,
               <>
                 <span className="font-medium">Samen evalueren</span>, en beslissen of en hoe we verder gaan.
@@ -150,7 +144,7 @@ export default function PartnersPagina() {
             ))}
           </ol>
           <p className="text-base text-muted-foreground">
-            <Placeholder>[kosten van de pilot: nog invullen]</Placeholder>
+            Tijdens de pilot betaal je niets. Daarna spreken we samen een prijs per opgeloste zaak af.
           </p>
         </Band>
 
