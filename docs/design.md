@@ -144,8 +144,8 @@ Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 - Spacingritme is een veelvoud van 4. Tussen secties 56px mobiel / 112px desktop — pastelbanden
   hebben lucht nodig, anders worden het balken.
 - Tekstregels maximaal ~70 tekens.
-- Illustraties verdwijnen onder `md` als ze naast tekst stonden; ze gaan niet verkleinen tot ze
-  onleesbaar zijn.
+- Een kleurvlak met illustratie staat onder `lg` boven de tekst, iets platter (16:9). Een illustratie mag niet
+  zo klein worden dat hij onleesbaar is.
 
 ---
 
@@ -156,7 +156,9 @@ Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 - Formulierkolom max 480px, gecentreerd. De kop van een stap mag breder zijn: tot 880px.
 - Overzichten en bevestigingen (Mijn plan, verstuurd, betaald) gebruiken een brede kolom van 880px. Op tablet en
   mobiel schaalt die mee naar de schermbreedte.
-- Een pagina is een stapel gekleurde banden. Ritme: wit → pastel → wit → pastel → donkere footer.
+- Marketingpagina's (zoals /partners): tekst op de neutrale achtergrond, met naast elk blok een afgerond kleurvlak
+  voor een illustratie (Beeldsectie). Het vlak wisselt per blok van kant; naast elkaar liggende blokken krijgen een
+  andere kleur. Op tablet en mobiel staat het vlak boven de tekst. Onderaan een donkere footer.
 - Kaarten: `surface` op de warme achtergrond, eventueel met een dunne `line` rand. Radius 16px. Geen
   slagschaduw. Schaduw alleen voor dingen die echt zweven (dropdown, dialog).
 - Kaarten in een raster hebben gelijke hoogte en de actie staat onderaan uitgelijnd.
