@@ -31,7 +31,7 @@ function Lijst({ items }: { items: string[] }) {
 export default function PartnersPagina() {
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
-      <Menu actief="schuldeisers" knop={{ tekst: "Een pilot bespreken", href: "#pilot" }} />
+      <Menu actief="schuldeisers" />
 
       <main className="flex-1">
         {/* HERO */}
@@ -138,17 +138,6 @@ export default function PartnersPagina() {
           </p>
         </Beeldsectie>
 
-        {/* OVER MIJ */}
-        <section className="pb-4">
-          <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
-            <p className="max-w-prose border-t border-line pt-8 text-base text-muted-foreground">
-              Ik ben Demmy Onink, product- en gedragsontwerper. Ik werk al ruim twintig jaar aan digitale producten,
-              vooral voor financiële dienstverleners. Betaalpauze bouw ik omdat ik zie dat goede regelingen vaak niet
-              aankomen bij de mensen die ze nodig hebben.
-            </p>
-          </div>
-        </section>
-
         {/* FORMULIER: over de volle breedte. Op desktop de uitleg links en de velden rechts. */}
         <section id="pilot" className="scroll-mt-4 py-12 lg:py-16">
           <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
@@ -163,8 +152,32 @@ export default function PartnersPagina() {
         </section>
       </main>
 
-      <footer className="bg-ink px-5 py-8 text-sm text-white md:px-8 lg:px-12">
-        <div className="mx-auto max-w-page">betaalpauze.nl</div>
+      {/* FOOTER: over mij en contact, op ink. */}
+      <footer className="bg-ink py-12 lg:py-16">
+        <div className="mx-auto grid max-w-page gap-10 px-5 md:px-8 lg:grid-cols-2 lg:gap-16 lg:px-12">
+          <div className="flex max-w-prose flex-col gap-3">
+            <p className="font-sans text-sm font-medium text-white">Over mij</p>
+            <p className="text-base text-grijs-soft">
+              Ik ben Demmy Onink, product- en gedragsontwerper. Ik werk al ruim twintig jaar aan digitale producten,
+              vooral voor financiële dienstverleners. Betaalpauze bouw ik omdat ik zie dat goede regelingen vaak niet
+              aankomen bij de mensen die ze nodig hebben.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className="font-sans text-sm font-medium text-white">Contact</p>
+            <a
+              href="https://www.linkedin.com/in/demmy/"
+              target="_blank"
+              rel="noreferrer"
+              className="self-start text-base text-white underline underline-offset-4 hover:text-grijs-soft"
+            >
+              Demmy Onink op LinkedIn
+            </a>
+          </div>
+        </div>
+        <div className="mx-auto mt-12 max-w-page px-5 md:px-8 lg:px-12">
+          <p className="border-t border-leisteen pt-6 font-sans text-sm text-grijs-soft">betaalpauze.nl</p>
+        </div>
       </footer>
     </div>
   )

@@ -144,7 +144,8 @@ Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 - Spacingritme is een veelvoud van 4. Tussen secties 56px mobiel / 112px desktop — pastelbanden
   hebben lucht nodig, anders worden het balken.
 - Tekstregels maximaal ~70 tekens.
-- Een kleurvlak met illustratie staat onder `lg` boven de tekst, iets platter (16:9). Een illustratie mag niet
+- Een kleurvlak met illustratie is net zo groot als het vlak op de homepage (maximaal 480px breed, verhouding 480:463)
+  en staat onder `lg` boven de tekst. Een illustratie mag niet
   zo klein worden dat hij onleesbaar is.
 
 ---

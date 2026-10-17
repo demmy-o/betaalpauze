@@ -14,7 +14,7 @@ const meta = {
           "Een blok op een marketingpagina, zoals /partners. De tekst staat op de neutrale achtergrond, met ernaast een " +
           "afgerond kleurvlak waar een illustratie in kan (`beeld`). Op desktop staan tekst en vlak naast elkaar; wissel " +
           "per blok van kant met `beeldKant`, en geef naast elkaar liggende blokken een andere `kleur` uit het palet. " +
-          "Op tablet en mobiel staat het vlak boven de tekst, iets platter.",
+          "Op tablet en mobiel staat het vlak boven de tekst. Het vlak is net zo groot als op de homepage: maximaal 480px breed, verhouding 480:463.",
       },
     },
   },
