@@ -19,7 +19,8 @@ function verstToegestaan(a: Antwoorden) {
   return 4
 }
 
-export function Aanvraag() {
+// ingelogdAls: het e-mailadres van je account. Dan sla je in stap 4 de code over.
+export function Aanvraag({ ingelogdAls }: { ingelogdAls?: string }) {
   const router = useRouter()
   const zoekParams = useSearchParams()
   const antwoorden = useAntwoorden()
@@ -87,6 +88,7 @@ export function Aanvraag() {
 
   return (
     <StapEmail
+      ingelogdAls={ingelogdAls}
       aanvraag={{ schuldeiser: antwoorden.schuldeiser!, factuur: antwoorden.factuur!, gegevens: antwoorden.gegevens! }}
       beginEmail={antwoorden.email}
       codeVerstuurd={antwoorden.codeVerstuurd}

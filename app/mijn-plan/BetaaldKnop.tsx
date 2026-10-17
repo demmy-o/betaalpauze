@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { Button } from "@/components/ui/button"
 import { zetTermijnBetaald, zetTermijnNietBetaald } from "./actions"
+import { Foutmelding } from "@/components/ui/foutmelding"
 
 // Knop "Betaald" bij een termijn op Mijn plan.
 export function BetaaldKnop({ termijnId }: { termijnId: string }) {
@@ -10,8 +12,10 @@ export function BetaaldKnop({ termijnId }: { termijnId: string }) {
 
   return (
     <span className="flex flex-col items-end">
-      <button
+      <Button
         type="button"
+        variant="secundair"
+        size="middel"
         disabled={bezig}
         onClick={() =>
           startBezig(async () => {
@@ -19,14 +23,13 @@ export function BetaaldKnop({ termijnId }: { termijnId: string }) {
             if (uitkomst) setFout(uitkomst.melding)
           })
         }
-        className="h-11 rounded-full border border-ink px-4 text-sm font-medium text-ink transition-colors duration-[120ms] hover:bg-lilac-soft disabled:opacity-60"
       >
         {bezig ? "..." : "Betaald"}
-      </button>
+      </Button>
       {fout && (
-        <span role="alert" className="mt-1 text-xs text-error">
+        <Foutmelding inline role="alert" className="mt-1 text-xs">
           {fout}
-        </span>
+        </Foutmelding>
       )}
     </span>
   )
@@ -39,8 +42,10 @@ export function TochNietBetaaldKnop({ termijnId }: { termijnId: string }) {
 
   return (
     <span className="flex flex-col items-end">
-      <button
+      <Button
         type="button"
+        variant="tertiair"
+        size="klein"
         disabled={bezig}
         onClick={() =>
           startBezig(async () => {
@@ -48,14 +53,13 @@ export function TochNietBetaaldKnop({ termijnId }: { termijnId: string }) {
             if (uitkomst) setFout(uitkomst.melding)
           })
         }
-        className="min-h-11 text-xs text-violet underline underline-offset-4 hover:text-violet-strong disabled:opacity-60"
       >
         {bezig ? "..." : "Toch niet betaald"}
-      </button>
+      </Button>
       {fout && (
-        <span role="alert" className="mt-1 text-xs text-error">
+        <Foutmelding inline role="alert" className="mt-1 text-xs">
           {fout}
-        </span>
+        </Foutmelding>
       )}
     </span>
   )

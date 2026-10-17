@@ -1,0 +1,41 @@
+import { Meta } from "@storybook/addon-docs/blocks"
+
+<Meta title="Welkom" />
+
+# Betaalpauze design system
+
+Hier staat alles wat we bouwen voor betaalpauze.nl: kleuren, tekst, vormen en componenten.
+De regels erachter staan in `docs/design.md`. De tokens staan in `app/globals.css`.
+De bron van kleuren, fonts en maten is het Figma-bestand **Betaalpauze Design** (landingsvarianten).
+
+## Zo werken we
+
+1. **Zoek eerst in Storybook.** Staat het onderdeel er al in? Gebruik het.
+2. **Past het bijna?** Pas het bestaande component aan en werk de story bij. Maak geen nieuwe variant ernaast.
+3. **Bestaat het echt niet?** Bouw het nieuwe component en zet er meteen een story bij.
+4. **Een component is pas klaar met een story.** Zonder story weet de volgende (en Claude) niet dat het bestaat.
+
+## Wat staat waar
+
+- Kleuren, tekst, breakpoints, vormen, beweging: **Fundamenten**. Hier begin je. Alle tekststijlen en kleuren staan hier als token.
+- Losse onderdelen: **Basis**. Knop, label, invoerveld, tekstvak, keuzelijst, veldengroep, foutmelding, kaart, pagina, kopbalk en de keuzes (keuzekaart, keuzeknop,
+  keuzerondje, vinkje).
+- Samengestelde onderdelen uit de aanvraagflow: **Formulier** (stap, veld, foutsamenvatting),
+  **Navigatie** en **Illustratie**.
+
+## Namen die anders heten dan in het design
+
+Eén naam uit `docs/design.md` botst met shadcn en heet in de code anders: design `muted` (tekstkleur) is `text-muted-foreground`.
+
+## Nog niet in Storybook
+
+Deze onderdelen staan wel in de app, maar nog niet hier:
+
+- Statuslabel (in `ZaakKaart`). `components/ui/badge.tsx` bestaat, maar is nog shadcn-stijl.
+- Melding voor fout, tip en succes (op meerdere plekken)
+- Kaart (`components/ui/card.tsx`, nog shadcn-stijl) en voortgangsbalk (`components/ui/progress.tsx`)
+- Wachtlijstformulier, zaakkaart, testbalk
+
+De app gebruikt de nieuwe keuze-elementen en de keuzelijst nog niet. Die staan nog als losse klassen in
+`KiesVoorstel`, `StapSchuldeiser` en `PartnerFormulier`. `components/ui/select.tsx` (een zelfgemaakte
+keuzelijst van shadcn) wordt niet gebruikt. Kies de **Keuzelijst**.

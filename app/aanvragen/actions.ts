@@ -35,7 +35,7 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
   if (!controle.success) {
     return { ok: false, melding: "Er mist nog iets in een eerdere stap. Ga terug en check je antwoorden." }
   }
-  const { schuldeiser, factuur, gegevens, email } = controle.data
+  const { email } = controle.data
 
   if (!/^\d{6}$/.test(code.replace(/\s/g, ""))) {
     return { ok: false, melding: "De code heeft 6 cijfers. Check of je er geen mist." }
@@ -51,6 +51,32 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
   if (codeFout || !sessie.user) {
     return { ok: false, melding: "Deze code klopt niet of is verlopen. Vraag een nieuwe code aan." }
   }
+
+  return bewaarZaak(supabase, sessie.user.id, controle.data)
+}
+
+// Stap 4 als je al ingelogd bent: geen code nodig. Het e-mailadres komt uit je account, niet uit de browser.
+export async function bewaarAlsIngelogd(aanvraag: Omit<AanvraagData, "email">): Promise<Uitkomst> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user?.email) return { ok: false, melding: "Je bent niet meer ingelogd. Log opnieuw in via de knop rechtsboven." }
+
+  const controle = aanvraagSchema.safeParse({ ...aanvraag, email: user.email })
+  if (!controle.success) {
+    return { ok: false, melding: "Er mist nog iets in een eerdere stap. Ga terug en check je antwoorden." }
+  }
+  return bewaarZaak(supabase, user.id, controle.data)
+}
+
+// Bewaart de zaak voor een ingelogde gebruiker: schuldeiser, profiel, zaak, route en events.
+async function bewaarZaak(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  aanvraag: AanvraagData
+): Promise<Uitkomst> {
+  const { schuldeiser, factuur, gegevens } = aanvraag
 
   // 2. Schuldeiser: uit onze eigen lijst (op id), anders op KVK-nummer.
   //    Naam en adres komen altijd uit onze lijst of van de KVK zelf, nooit uit de browser.
@@ -120,7 +146,7 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
       postcode: netjesPostcode(gegevens.postcode),
       plaats: gegevens.plaats,
     })
-    .eq("id", sessie.user.id)
+    .eq("id", userId)
   if (profielFout) return { ok: false, melding: "Opslaan lukte niet. Probeer het opnieuw." }
 
   const { data: zaak, error: zaakFout } = await supabase
@@ -142,9 +168,9 @@ export async function bevestigEnBewaar(aanvraag: AanvraagData, code: string): Pr
   if (routeFout) return { ok: false, melding: "Opslaan lukte niet. Probeer het opnieuw." }
 
   await admin.from("events").insert([
-    { user_id: sessie.user.id, zaak_id: zaak.id, naam: "aanvraag_stap4_bevestigd", data: {} },
+    { user_id: userId, zaak_id: zaak.id, naam: "aanvraag_stap4_bevestigd", data: {} },
     {
-      user_id: sessie.user.id,
+      user_id: userId,
       zaak_id: zaak.id,
       naam: "route_gekozen",
       // reden: wat we van dit bedrijf wisten (email, portaal, formulier, telefoon) of "onbekend"

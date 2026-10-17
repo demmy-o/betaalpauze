@@ -1,11 +1,12 @@
 import { notFound, redirect } from "next/navigation"
-import Image from "next/image"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { haalZaak } from "@/lib/zaak"
 import { datumLang, euro, plusDagen } from "@/lib/betaalplan"
 import { REACTIE_DAGEN } from "@/lib/brief"
 import { mailBeta } from "@/lib/verstuur"
+import { Pagina } from "@/components/ui/pagina"
+import { Kaart } from "@/components/ui/kaart"
 
 export const metadata = { title: "Verstuurd · Betaalpauze.nl" }
 
@@ -32,61 +33,57 @@ export default async function VerstuurdPagina({ params }: { params: Promise<{ za
   const beta = mailBeta()
 
   return (
-    <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
-      <div className="mx-auto flex max-w-form flex-col gap-8">
-        <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
+    <Pagina kolom="breed">
+      <Kaart className="gap-3">
+        <h1 className="text-h2 text-ink">{beta ? "Je testbrief staat in je mailbox" : "Je voorstel is verstuurd"}</h1>
+        {beta ? (
+          <p className="text-base text-ink">
+            Dit is de testversie. Je brief is niet naar {zaak.brief.schuldeiser.naam} gestuurd. Je vindt hem in je
+            mailbox, op {zaak.brief.afzender.email}.
+          </p>
+        ) : (
+          <p className="text-base text-ink">
+            Je brief is naar {zaak.brief.schuldeiser.naam} gestuurd. Een kopie staat in je mailbox, op{" "}
+            {zaak.brief.afzender.email}.
+          </p>
+        )}
+      </Kaart>
 
-        <section className="flex flex-col gap-3 rounded-lg bg-mint-soft p-6">
-          <h1 className="text-h2 text-ink">{beta ? "Je testbrief staat in je mailbox" : "Je voorstel is verstuurd"}</h1>
+      <section className="flex flex-col gap-4">
+        <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
+        <ol className="flex flex-col gap-4">
           {beta ? (
-            <p className="text-base text-ink">
-              Dit is de testversie. Je brief is niet naar {zaak.brief.schuldeiser.naam} gestuurd. Je vindt hem in je
-              mailbox, op {zaak.brief.afzender.email}.
-            </p>
+            <Moment datum={reactieVoor} titel="Hier zou het bedrijf reageren">
+              In de echte versie heeft het bedrijf tot deze dag om te reageren. Nu komt er geen antwoord. Op Mijn plan
+              kun je zelf kiezen wat het bedrijf had kunnen zeggen.
+            </Moment>
           ) : (
-            <p className="text-base text-ink">
-              Je brief is naar {zaak.brief.schuldeiser.naam} gestuurd. Een kopie staat in je mailbox, op{" "}
-              {zaak.brief.afzender.email}.
-            </p>
+            <Moment datum={reactieVoor} titel="Het bedrijf reageert">
+              Het bedrijf heeft tot deze dag om te reageren. Het antwoord komt direct in jouw mailbox, niet bij ons.
+            </Moment>
           )}
-        </section>
+          <Moment datum={herinnering} titel="Wij sturen een herinnering">
+            Drie dagen voor je eerste betaling krijg je van ons een mail.
+          </Moment>
+          <Moment datum={eerste.vervaldatum} titel="Je eerste betaling">
+            Je betaalt <span className="tabular font-medium">{euro(eerste.bedragCenten)}</span> via je eigen bank.
+            Hoor je niets van het bedrijf? Dan begin je toch, zoals in je voorstel staat.
+          </Moment>
+        </ol>
+      </section>
 
-        <section className="flex flex-col gap-4">
-          <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
-          <ol className="flex flex-col gap-4">
-            {beta ? (
-              <Moment datum={reactieVoor} titel="Hier zou het bedrijf reageren">
-                In de echte versie heeft het bedrijf tot deze dag om te reageren. Nu komt er geen antwoord. Op Mijn plan
-                kun je zelf kiezen wat het bedrijf had kunnen zeggen.
-              </Moment>
-            ) : (
-              <Moment datum={reactieVoor} titel="Het bedrijf reageert">
-                Het bedrijf heeft tot deze dag om te reageren. Het antwoord komt direct in jouw mailbox, niet bij ons.
-              </Moment>
-            )}
-            <Moment datum={herinnering} titel="Wij sturen een herinnering">
-              Drie dagen voor je eerste betaling krijg je van ons een mail.
-            </Moment>
-            <Moment datum={eerste.vervaldatum} titel="Je eerste betaling">
-              Je betaalt <span className="tabular font-medium">{euro(eerste.bedragCenten)}</span> via je eigen bank.
-              Hoor je niets van het bedrijf? Dan begin je toch, zoals in je voorstel staat.
-            </Moment>
-          </ol>
-        </section>
+      <p className="text-sm text-muted-foreground">
+        Een voorstel is pas een afspraak als het bedrijf akkoord gaat. Krijg je een ander antwoord? Dan helpen we je
+        verder als je ons dat laat weten.
+      </p>
 
-        <p className="text-sm text-muted-foreground">
-          Een voorstel is pas een afspraak als het bedrijf akkoord gaat. Krijg je een ander antwoord? Dan helpen we je
-          verder als je ons dat laat weten.
-        </p>
-
-        <Link
-          href={beta ? "/mijn-plan" : "/"}
-          className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
-        >
-          {beta ? "Naar Mijn plan" : "Naar de startpagina"}
-        </Link>
-      </div>
-    </main>
+      <Link
+        href={beta ? "/mijn-plan" : "/"}
+        className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft"
+      >
+        {beta ? "Naar Mijn plan" : "Naar de startpagina"}
+      </Link>
+    </Pagina>
   )
 }
 
@@ -94,31 +91,27 @@ export default async function VerstuurdPagina({ params }: { params: Promise<{ za
 function PerPost({ zaak }: { zaak: NonNullable<Awaited<ReturnType<typeof haalZaak>>> }) {
   const s = zaak.brief!.schuldeiser
   return (
-    <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
-      <div className="mx-auto flex max-w-form flex-col gap-8">
-        <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
+    <Pagina kolom="breed">
+      <Kaart className="gap-3">
+        <h1 className="text-h2 text-ink">We sturen je brief per post</h1>
+        <p className="text-base text-ink">
+          Je brief gaat naar {s.naam}, {s.straat}, {s.postcode} {s.plaats}. We doen hem binnen 2 werkdagen op de post.
+        </p>
+      </Kaart>
 
-        <section className="flex flex-col gap-3 rounded-lg bg-mint-soft p-6">
-          <h1 className="text-h2 text-ink">We sturen je brief per post</h1>
-          <p className="text-base text-ink">
-            Je brief gaat naar {s.naam}, {s.straat}, {s.postcode} {s.plaats}. We doen hem binnen 2 werkdagen op de post.
-          </p>
-        </section>
+      <section className="flex flex-col gap-3">
+        <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
+        <ol className="flex list-decimal flex-col gap-2 pl-5 text-base text-ink">
+          <li>Je krijgt een mail zodra de brief op de post is, met de brief als PDF.</li>
+          <li>Vanaf die dag heeft het bedrijf 14 dagen om te reageren. Het antwoord komt in jouw mailbox.</li>
+          <li>Rond elke betaling sturen we je een herinnering.</li>
+        </ol>
+      </section>
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-h3 text-ink">Wat gebeurt er nu?</h2>
-          <ol className="flex list-decimal flex-col gap-2 pl-5 text-base text-ink">
-            <li>Je krijgt een mail zodra de brief op de post is, met de brief als PDF.</li>
-            <li>Vanaf die dag heeft het bedrijf 14 dagen om te reageren. Het antwoord komt in jouw mailbox.</li>
-            <li>Rond elke betaling sturen we je een herinnering.</li>
-          </ol>
-        </section>
-
-        <Link href="/mijn-plan" className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong">
-          Naar Mijn plan
-        </Link>
-      </div>
-    </main>
+      <Link href="/mijn-plan" className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft">
+        Naar Mijn plan
+      </Link>
+    </Pagina>
   )
 }
 

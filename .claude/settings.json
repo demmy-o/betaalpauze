@@ -8,7 +8,8 @@
       "Bash(git commit *)",
       "mcp__claude_ai_Supabase",
       "mcp__claude_ai_Notion",
-      "mcp__playwright"
+      "mcp__playwright",
+      "mcp__storybook"
     ],
     "ask": [
       "Bash(git push *)",

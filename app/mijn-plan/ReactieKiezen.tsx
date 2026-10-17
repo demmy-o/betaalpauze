@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import type { ZaakStatus } from "@/lib/mijnPlan"
 import { zetReactie, type Reactie } from "./actions"
+import { Foutmelding } from "@/components/ui/foutmelding"
 
 const KEUZES: { waarde: Reactie; tekst: string }[] = [
   { waarde: "akkoord", tekst: "Akkoord" },
@@ -47,14 +48,14 @@ export function ReactieKiezen({ zaakId, schuldeiser, status }: { zaakId: string;
       </div>
 
       <div aria-live="polite">
-        {fout && <p className="text-sm text-error">{fout}</p>}
+        {fout && <Foutmelding>{fout}</Foutmelding>}
         {status === "akkoord" && (
-          <p className="rounded-md bg-mint-soft p-3 text-sm text-ink">
+          <p className="rounded-md bg-surface p-3 text-sm text-ink">
             Je afspraak staat. Betaal volgens je schema. Wij sturen je rond elke betaling een herinnering.
           </p>
         )}
         {status === "afgewezen" && (
-          <p className="rounded-md bg-peach-soft p-3 text-sm text-ink">
+          <p className="rounded-md bg-surface p-3 text-sm text-ink">
             Vraag het bedrijf wat wel kan, bijvoorbeeld een kleiner bedrag per maand. Kom je er niet uit? Het
             Juridisch Loket helpt gratis, via juridischloket.nl of 0900 8020.
           </p>

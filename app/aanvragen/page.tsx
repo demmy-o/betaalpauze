@@ -1,21 +1,25 @@
 import { Suspense } from "react"
-import Image from "next/image"
 import { Aanvraag } from "./Aanvraag"
+import { Pagina } from "@/components/ui/pagina"
+import { createClient } from "@/lib/supabase/server"
 
 export const metadata = {
   title: "Betaalpauze aanvragen · Betaalpauze.nl",
 }
 
 // De aanvraag heeft geen hoofdmenu: alleen het logo, zodat je niet per ongeluk uit de flow klikt.
-export default function AanvragenPagina() {
+export default async function AanvragenPagina() {
+  // Al ingelogd? Dan hoeft er in stap 4 geen code meer.
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   return (
-    <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
-      <div className="mx-auto flex max-w-form flex-col gap-8">
-        <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
-        <Suspense>
-          <Aanvraag />
-        </Suspense>
-      </div>
-    </main>
+    <Pagina kolom="stap">
+      <Suspense>
+        <Aanvraag ingelogdAls={user?.email ?? undefined} />
+      </Suspense>
+    </Pagina>
   )
 }

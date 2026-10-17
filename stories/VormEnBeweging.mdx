@@ -1,0 +1,66 @@
+import { Meta } from "@storybook/addon-docs/blocks"
+import { Vormvoorbeeld } from "./helpers"
+
+<Meta title="Fundamenten/Vorm en beweging" />
+
+# Vorm en beweging
+
+Zacht in vorm, hard in inhoud. Alles is rond. Knoppen zijn pills.
+
+## Hoeken
+
+<div className="my-6 grid grid-cols-2 gap-6 md:grid-cols-5">
+  <Vormvoorbeeld naam="rounded-sm" waarde="8px. Tag, badge."><div className="h-20 rounded-sm bg-mint" /></Vormvoorbeeld>
+  <Vormvoorbeeld naam="rounded-md" waarde="12px. Invoerveld."><div className="h-20 rounded-md bg-mint" /></Vormvoorbeeld>
+  <Vormvoorbeeld naam="rounded-lg" waarde="16px. Kaart, dialog."><div className="h-20 rounded-lg bg-mint" /></Vormvoorbeeld>
+  <Vormvoorbeeld naam="rounded-xl" waarde="24px. Groot contentblok."><div className="h-20 rounded-xl bg-mint" /></Vormvoorbeeld>
+  <Vormvoorbeeld naam="rounded-full" waarde="Knoppen en keuzeknoppen."><div className="h-20 rounded-full bg-mint" /></Vormvoorbeeld>
+</div>
+
+## Schaduw
+
+Alleen voor dingen die echt zweven. Een kaart heeft geen schaduw, die heeft een dunne rand (`border-line`).
+
+<div className="my-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+  <Vormvoorbeeld naam="shadow-pop" waarde="Dropdown, menu."><div className="h-20 rounded-lg bg-surface shadow-pop" /></Vormvoorbeeld>
+  <Vormvoorbeeld naam="shadow-dialog" waarde="Dialog."><div className="h-20 rounded-lg bg-surface shadow-dialog" /></Vormvoorbeeld>
+</div>
+
+## Ruimte
+
+Alles is een veelvoud van 4px. Gebruik de gewone Tailwind-klassen: `gap-1` is 4px, `gap-4` is 16px, `p-6` is 24px.
+Deze maten komen uit Figma:
+
+- Label tot invoerveld: 4px (`gap-1`)
+- Tussen kop, lead en formulier: 16px (`gap-4`)
+- Laatste veld tot knop: 24px (`gap-6`)
+- Binnenkant van een kaart: 24px (`p-6`)
+- Rij in een lijst: 12px boven en onder (`py-3`)
+- Binnenkant invoerveld: 16px opzij (`px-4`)
+- Binnenkant knop: 26px opzij, minimaal 48px hoog (`px-6.5 min-h-12`)
+- Tussen twee kolommen: 64 tot 80px (`gap-16` of `gap-20`)
+
+Paginamarge: 20px op mobiel, 32px op tablet, 48px op desktop. Container: `max-w-page` (1200px), lopende tekst
+680px (`--container-prose`), kop van een stap `max-w-kop` (880px), formulier `max-w-form` (480px). Zie Fundamenten/Breakpoints.
+
+## Beweging
+
+Beweging bevestigt, ze vermaakt niet. Geen schaal, geen bounce. Nooit twee dingen tegelijk.
+
+- Hover, focus, kleurwissel: 120ms (`duration-[120ms]`), ease-out
+- Knop indrukken: 80ms, ease-out
+- Element verschijnt: 220ms, `--ease-enter`
+- Stapovergang in de flow: 260ms, `--ease-enter`
+- Voortgangsbalk: 400ms, ease-in-out
+
+Bij `prefers-reduced-motion: reduce` gaat alle verplaatsing uit. Dat staat al in `globals.css`.
+
+## Focus
+
+Altijd zichtbaar: 2px ring in ink met 2px afstand. Nooit `outline: none` zonder vervanging.
+
+<div className="my-6">
+  <button type="button" className="h-12 rounded-full border border-line-strong bg-surface px-6 text-base text-ink">
+    Klik of tab hierheen
+  </button>
+</div>

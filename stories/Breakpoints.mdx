@@ -1,0 +1,23 @@
+import { Meta } from "@storybook/addon-docs/blocks"
+import { Formaten } from "./helpers"
+
+<Meta title="Fundamenten/Breakpoints" />
+
+# Breakpoints
+
+Twee breakpoints, drie formaten. We kiezen de indeling die het meest gebruikt wordt: **768px** voor tablet en
+**1024px** voor desktop. Dat zijn ook de standaardwaarden van Tailwind (`md` en `lg`). We ontwerpen mobiel eerst:
+wat zonder voorvoegsel staat, geldt voor mobiel. Met `md:` en `lg:` maak je het groter.
+
+<Formaten />
+
+## Regels
+
+- **Alleen `md:` en `lg:`.** De voorvoegsels `sm:`, `xl:` en `2xl:` zijn uitgezet en doen niets.
+- **Container maximaal 1200px** (`max-w-page`), gecentreerd. Een gekleurde sectie loopt wel door tot de rand van het scherm.
+- **Inhoud in een gecentreerde kolom.** Een stap in de aanvraag: kop tot 880px (`max-w-kop`), antwoorden 480px (`max-w-form`). Overzichten en bevestigingen, zoals Mijn plan: 880px. Lopende tekst 680px
+  (`max-w-prose`). Zo blijven regels leesbaar, ook op een breed scherm.
+- **Gebruik het component Pagina** (Basis/Pagina). Dat regelt de achtergrond, de marges en de breedte per formaat.
+- **Primaire knop:** volle breedte op mobiel, eigen breedte vanaf tablet (`w-full md:w-auto`).
+- **Koppen** groeien vanaf desktop. Bodytekst blijft overal even groot (zie Fundamenten/Typografie).
+- **Bekijk elk component op drie formaten.** Kies in de werkbalk bovenaan Mobiel, Tablet of Desktop.

@@ -1,15 +1,20 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { bevestigEnBewaar, stuurAanvraagCode } from "./actions"
+import { bevestigEnBewaar, bewaarAlsIngelogd, stuurAanvraagCode } from "./actions"
 import { emailSchema, type AanvraagData } from "./schema"
-import { FoutSamenvatting, StapKop, Veld, VerderKnop, useStapFormulier } from "./onderdelen"
+import { FoutSamenvatting, Stap, Veld, StapKnoppen, useStapFormulier } from "./onderdelen"
+import { Kaart } from "@/components/ui/kaart"
+import { Foutmelding } from "@/components/ui/foutmelding"
+import { Button } from "@/components/ui/button"
+import { Veldengroep } from "@/components/ui/veldengroep"
 
 const OPNIEUW_NA_MS = 60 * 1000 // Supabase stuurt maximaal één code per minuut
 
 // Stap 4: je e-mailadres, en daarna op hetzelfde scherm de code uit je mail.
 // Na de juiste code bewaren we de zaak.
 export function StapEmail({
+  ingelogdAls,
   aanvraag,
   beginEmail,
   codeVerstuurd,
@@ -18,6 +23,7 @@ export function StapEmail({
   onAnderAdres,
   onKlaar,
 }: {
+  ingelogdAls?: string // het e-mailadres van je account, als je al ingelogd bent
   aanvraag: Omit<AanvraagData, "email">
   beginEmail?: string
   codeVerstuurd?: { email: string; tijd: number }
@@ -26,27 +32,75 @@ export function StapEmail({
   onAnderAdres: () => void
   onKlaar: (zaakId: string) => void
 }) {
+  // Al ingelogd: geen e-mailadres en geen code nodig.
+  if (ingelogdAls) {
+    return (
+      <Stap stap={4} titel="Je voorstel bewaren" uitleg="Je bent ingelogd. We bewaren je voorstel bij je account.">
+        <AlIngelogd email={ingelogdAls} aanvraag={aanvraag} onKlaar={onKlaar} />
+      </Stap>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-8">
-      <StapKop
+      <Stap
         stap={4}
         titel="Je e-mailadres"
         uitleg="We sturen je een code. Zo weten we dat jij het bent, en kan niemand een brief uit jouw naam sturen."
-      />
-
-      {codeVerstuurd ? (
-        <CodeInvullen
-          aanvraag={aanvraag}
-          email={codeVerstuurd.email}
-          verstuurdOp={codeVerstuurd.tijd}
-          onNieuweCode={() => onCodeVerstuurd(codeVerstuurd.email, Date.now())}
-          onAnderAdres={onAnderAdres}
-          onKlaar={onKlaar}
-        />
-      ) : (
-        <EmailInvullen begin={beginEmail} laatsteCode={laatsteCode} onVerstuurd={onCodeVerstuurd} />
-      )}
+      >
+        {codeVerstuurd ? (
+          <CodeInvullen
+            aanvraag={aanvraag}
+            email={codeVerstuurd.email}
+            verstuurdOp={codeVerstuurd.tijd}
+            onNieuweCode={() => onCodeVerstuurd(codeVerstuurd.email, Date.now())}
+            onAnderAdres={onAnderAdres}
+            onKlaar={onKlaar}
+          />
+        ) : (
+          <EmailInvullen begin={beginEmail} laatsteCode={laatsteCode} onVerstuurd={onCodeVerstuurd} />
+        )}
+      </Stap>
     </div>
+  )
+}
+
+function AlIngelogd({
+  email,
+  aanvraag,
+  onKlaar,
+}: {
+  email: string
+  aanvraag: Omit<AanvraagData, "email">
+  onKlaar: (zaakId: string) => void
+}) {
+  const [fout, setFout] = useState<string>()
+  const [bezig, startBezig] = useTransition()
+
+  function bewaar(e: React.FormEvent) {
+    e.preventDefault()
+    setFout(undefined)
+    startBezig(async () => {
+      const uitkomst = await bewaarAlsIngelogd(aanvraag)
+      if (uitkomst.ok && uitkomst.zaakId) onKlaar(uitkomst.zaakId)
+      else if (!uitkomst.ok) setFout(uitkomst.melding)
+    })
+  }
+
+  return (
+    <form onSubmit={bewaar} className="flex flex-col gap-8" noValidate>
+      <Kaart as="div" className="gap-1">
+        <p className="text-sm text-muted-foreground">Ingelogd als</p>
+        <p className="font-medium text-ink">{email}</p>
+        <p className="text-sm text-muted-foreground">Hier sturen we straks ook een kopie van je brief naartoe.</p>
+      </Kaart>
+      {fout && <Foutmelding role="alert">{fout}</Foutmelding>}
+      <StapKnoppen>
+        <Button type="submit" variant="primair" size="groot" disabled={bezig}>
+          {bezig ? "Bezig met bewaren..." : "Verder naar je voorstel"}
+        </Button>
+      </StapKnoppen>
+    </form>
   )
 }
 
@@ -87,18 +141,20 @@ function EmailInvullen({
     <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
       <FoutSamenvatting fouten={formulier.samenvatting} />
 
-      <Veld
-        id="email"
-        label="Jouw e-mailadres"
-        hulp="Hier sturen we de code naartoe, en straks een kopie van de brief."
-        type="email"
-        inputMode="email"
-        autoComplete="email"
-        waarde={formulier.waarden.email}
-        fout={formulier.fouten.email}
-        onWaarde={(w) => formulier.zet("email", w)}
-        onVerlaten={() => formulier.verlaten("email")}
-      />
+      <Veldengroep>
+        <Veld
+          id="email"
+          label="Jouw e-mailadres"
+          voorbeeld="naam@voorbeeld.nl"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          waarde={formulier.waarden.email}
+          fout={formulier.fouten.email}
+          onWaarde={(w) => formulier.zet("email", w)}
+          onVerlaten={() => formulier.verlaten("email")}
+        />
+      </Veldengroep>
 
       {serverFout && (
         <p role="alert" className="rounded-lg bg-error-tint p-4 text-sm text-ink">
@@ -106,7 +162,15 @@ function EmailInvullen({
         </p>
       )}
 
-      <VerderKnop bezig={bezig}>{bezig ? "Code wordt verstuurd..." : "Stuur mij een code"}</VerderKnop>
+      <StapKnoppen>
+
+        <Button type="submit" variant="primair" size="groot" disabled={bezig}>
+
+          {bezig ? "Code wordt verstuurd..." : "Stuur mij een code"}
+
+        </Button>
+
+      </StapKnoppen>
     </form>
   )
 }
@@ -165,46 +229,61 @@ function CodeInvullen({
 
   return (
     <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
-      <div className="flex flex-col gap-1 rounded-lg bg-lilac-soft p-5">
+      <Kaart as="div" className="gap-1">
         <p className="text-sm text-muted-foreground">Code gestuurd naar</p>
         <p className="font-medium text-ink">{email}</p>
-        <button
+        <p className="text-sm text-muted-foreground">Zie je geen mail? Kijk ook in je spammap.</p>
+        <Button
           type="button"
           onClick={onAnderAdres}
-          className="min-h-11 self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
+          variant="tertiair"
+          size="klein"
+          className="self-start"
         >
           Ander e-mailadres gebruiken
-        </button>
-      </div>
+        </Button>
+      </Kaart>
 
-      <Veld
-        id="code"
-        label="Code uit je mail"
-        hulp="De code heeft 6 cijfers. Zie je geen mail? Check ook je spammap."
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        maxLength={6}
-        autoFocus
-        waarde={code}
-        fout={fout}
-        onWaarde={(w) => {
-          setCode(w)
-          if (fout && /^\d{6}$/.test(w)) setFout(undefined)
-        }}
-        onVerlaten={() => {}}
-      />
+      <Veldengroep>
+        <Veld
+          id="code"
+          label="Code uit je mail"
+          voorbeeld="123456"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+          autoFocus
+          waarde={code}
+          fout={fout}
+          onWaarde={(w) => {
+            setCode(w)
+            if (fout && /^\d{6}$/.test(w)) setFout(undefined)
+          }}
+          onVerlaten={() => {}}
+        />
+      </Veldengroep>
 
-      <VerderKnop bezig={bezig}>{bezig ? "Bezig met controleren..." : "Code bevestigen"}</VerderKnop>
+      <StapKnoppen>
+
+        <Button type="submit" variant="primair" size="groot" disabled={bezig}>
+
+          {bezig ? "Bezig met controleren..." : "Code bevestigen"}
+
+        </Button>
+
+      </StapKnoppen>
 
       <div className="flex flex-col gap-2" aria-live="polite">
-        <button
+        <Button
           type="button"
           onClick={nieuweCode}
           disabled={verstuurt}
-          className="min-h-11 self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong disabled:opacity-50"
+          variant="tertiair"
+          size="klein"
+          className="self-start"
         >
           {verstuurt ? "Nieuwe code wordt verstuurd..." : "Geen code gekregen? Stuur een nieuwe"}
-        </button>
+        </Button>
         {melding && <p className="text-sm text-muted-foreground">{melding}</p>}
       </div>
     </form>

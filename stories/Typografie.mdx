@@ -1,0 +1,66 @@
+import { Meta } from "@storybook/addon-docs/blocks"
+import { Tekstmaat, Tekststijlen } from "./helpers"
+
+<Meta title="Fundamenten/Typografie" />
+
+# Typografie
+
+Het basisfont is **Noto Serif**: voor koppen (gewicht 500) en lopende tekst. De interface gebruikt **Noto Sans**: labels,
+invoervelden, knoppen, tags en kleine kapitalen. De componenten zetten dat zelf, daar hoef je niets voor te doen.
+Bron: Figma "Betaalpauze Design".
+Op een scherm vanaf 1024px worden de koppen groter. De bodytekst blijft gelijk.
+
+## Tekststijlen
+
+Elke stijl is één klasse. `text-h1` geeft de maat, de regelafstand, het gewicht en de letterafstand in één keer.
+Alleen het lettertype zet je apart: `h1`, `h2` en `h3` krijgen vanzelf Noto Serif. Gebruik je een kopstijl
+op een ander element, zet er dan `font-display` bij.
+
+<Tekststijlen />
+
+Maak het venster smaller of breder om de koppen hieronder te zien veranderen. De waarden ernaast zijn live.
+
+<Tekstmaat naam="Display" token="--text-display">
+  <p className="font-display text-display text-ink">Even geen ruimte om te betalen.</p>
+</Tekstmaat>
+<Tekstmaat naam="Kop 1 (h1)" token="--text-h1">
+  <h1 className="text-h1 text-ink">Wat wil je voorstellen?</h1>
+</Tekstmaat>
+<Tekstmaat naam="Kop 2 (h2)" token="--text-h2">
+  <h2 className="text-h2 text-ink">Zo ziet je voorstel eruit</h2>
+</Tekstmaat>
+<Tekstmaat naam="Kop 3 (h3)" token="--text-h3">
+  <h3 className="text-h3 text-ink">Je betaalschema</h3>
+</Tekstmaat>
+<Tekstmaat naam="Lead" token="--text-lead">
+  <p className="text-lead text-ink-soft">Betaalpauze wordt de plek waar je je betalingen tijdelijk stilzet en vooraf weet wat dat kost.</p>
+</Tekstmaat>
+<Tekstmaat naam="Body" token="--text-base">
+  <p className="text-base text-ink-soft">Tot 1 december 2026 betaal je niets. Op die dag betaal je het hele bedrag.</p>
+</Tekstmaat>
+<Tekstmaat naam="Klein (hulptekst)" token="--text-sm">
+  <p className="text-sm text-muted-foreground">Eén bericht bij de livegang. Geen nieuwsbrief.</p>
+</Tekstmaat>
+<Tekstmaat naam="Label (Noto Sans)" token="--text-sm">
+  <p className="font-sans text-sm font-medium text-ink">E-mailadres</p>
+</Tekstmaat>
+<Tekstmaat naam="Kleine kapitalen (Noto Sans)" token="--text-caption">
+  <p className="eyebrow text-ink-soft">Binnenkort</p>
+</Tekstmaat>
+<Tekstmaat naam="Bedragen en datums" token="--font-sans">
+  <p className="tabular font-sans text-base text-ink">€ 1.248,00 &nbsp;·&nbsp; € 248,00 &nbsp;·&nbsp; 1 oktober 2026</p>
+  <p className="mt-2 text-sm text-muted-foreground">Gebruik de klasse <code>tabular</code>, dan staan cijfers netjes onder elkaar.</p>
+</Tekstmaat>
+
+## Welke kleur?
+
+Koppen en display zijn `text-ink`. Platte tekst en introtekst zijn `text-ink-soft`. Dat is de standaard, je hoeft het niet
+te zetten. Labels zijn `text-ink`, hulptekst is `text-muted-foreground`. Meer kleuren zijn er
+niet voor lopende tekst. Zie **Fundamenten/Kleuren** voor alle tekstkleuren met hun contrast.
+
+## Regels
+
+- Lopende tekst is maximaal ongeveer 70 tekens breed (680px, token `--container-prose`).
+- Zinnen zijn kort, in de je-vorm. Geen uitroeptekens, geen emoji.
+- Knoppen benoemen de uitkomst: "Pauze aanvragen", niet "Versturen".
+- Bedragen en datums zijn altijd expliciet: "€ 248,00 per maand", "vanaf 1 oktober 2026".

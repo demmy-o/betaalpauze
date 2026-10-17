@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { buttonVariants } from "@/components/ui/button"
 import { datumLang, euro, vandaag } from "@/lib/betaalplan"
 import type { TermijnStatus, ZaakOverzicht, ZaakStatus } from "@/lib/mijnPlan"
 import { ReactieKiezen } from "./ReactieKiezen"
@@ -7,11 +8,11 @@ import { BetaaldKnop, TochNietBetaaldKnop } from "./BetaaldKnop"
 // Status altijd als tekst, met een zachte kleur erachter. Nooit alleen een kleur (docs/design.md).
 const ZAAK_STATUS: Record<ZaakStatus, { tekst: string; stijl: string }> = {
   concept: { tekst: "Nog niet verstuurd", stijl: "bg-line text-ink" },
-  per_post: { tekst: "Wordt per post verstuurd", stijl: "bg-peach-soft text-ink" },
-  verstuurd: { tekst: "Wacht op reactie", stijl: "bg-sky-soft text-ink" },
-  akkoord: { tekst: "Akkoord", stijl: "bg-success-tint text-success" },
-  afgewezen: { tekst: "Niet akkoord", stijl: "bg-warning-tint text-warning" },
-  afgerond: { tekst: "Afgerond", stijl: "bg-success-tint text-success" },
+  per_post: { tekst: "Wordt per post verstuurd", stijl: "bg-mint-tint text-ink" },
+  verstuurd: { tekst: "Wacht op reactie", stijl: "bg-grijs-tint text-ink" },
+  akkoord: { tekst: "Akkoord", stijl: "bg-success-tint text-ink" },
+  afgewezen: { tekst: "Niet akkoord", stijl: "bg-warning-tint text-ink" },
+  afgerond: { tekst: "Afgerond", stijl: "bg-success-tint text-ink" },
 }
 
 function termijnTekst(status: TermijnStatus, vervaldatum: string) {
@@ -41,7 +42,7 @@ export function ZaakKaart({ zaak }: { zaak: ZaakOverzicht }) {
       {zaak.status === "concept" && (
         <Link
           href={zaak.termijnen.length ? `/aanvragen/${zaak.id}/brief` : `/aanvragen/${zaak.id}/voorstel`}
-          className="flex h-12 items-center justify-center rounded-full bg-ink px-6 text-base font-medium text-white hover:bg-ink-soft sm:self-start"
+          className={buttonVariants({ variant: "primair", size: "groot", className: "md:self-start" })}
         >
           Verder met je voorstel
         </Link>

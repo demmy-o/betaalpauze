@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import { bevestigBetaald } from "./actions"
+import { Kaart } from "@/components/ui/kaart"
 
 const REDENEN: Record<string, string> = {
   gebruikt: "Deze link is al gebruikt. Je betaling stond al genoteerd.",
@@ -18,13 +20,13 @@ export function BevestigKnop({ token, knopTekst }: { token: string; knopTekst: s
 
   if (uitkomst?.ok) {
     return (
-      <section role="status" className="flex flex-col gap-3 rounded-lg bg-mint-soft p-6">
+      <Kaart role="status" className="gap-3">
         <h2 className="text-h3 text-ink">Genoteerd</h2>
         <p className="text-base text-ink">We hebben je betaling op betaald gezet. Je ziet het ook op Mijn plan.</p>
-        <Link href="/mijn-plan" className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong">
+        <Link href="/mijn-plan" className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft">
           Naar Mijn plan
         </Link>
-      </section>
+      </Kaart>
     )
   }
 
@@ -35,14 +37,16 @@ export function BevestigKnop({ token, knopTekst }: { token: string; knopTekst: s
           {REDENEN[uitkomst.reden] ?? REDENEN.onbekend}
         </p>
       )}
-      <button
+      <Button
         type="button"
+        variant="primair"
+        size="groot"
         disabled={bezig}
         onClick={() => startBezig(async () => setUitkomst(await bevestigBetaald(token)))}
-        className="h-12 w-full rounded-full bg-ink px-6 text-base font-medium text-white transition-colors duration-[120ms] hover:bg-ink-soft disabled:opacity-60 sm:w-auto sm:self-start"
+        className="w-full md:w-auto md:self-start"
       >
         {bezig ? "Bezig met opslaan..." : knopTekst}
-      </button>
+      </Button>
     </div>
   )
 }

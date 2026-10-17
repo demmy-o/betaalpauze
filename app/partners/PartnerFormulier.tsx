@@ -2,9 +2,12 @@
 
 import { useState, useTransition } from "react"
 import { Label } from "@/components/ui/label"
-import { FoutSamenvatting, Veld, VerderKnop, useStapFormulier } from "../aanvragen/onderdelen"
+import { Textarea } from "@/components/ui/textarea"
+import { FoutSamenvatting, Veld, useStapFormulier } from "../aanvragen/onderdelen"
 import { partnerSchema } from "./schema"
 import { meldAan } from "./actions"
+import { Foutmelding } from "@/components/ui/foutmelding"
+import { Button } from "@/components/ui/button"
 
 // Aanmeldformulier onderaan /partners. Controleert velden bij verlaten (docs/design.md).
 export function PartnerFormulier() {
@@ -29,7 +32,7 @@ export function PartnerFormulier() {
 
   if (klaar) {
     return (
-      <p role="status" className="rounded-lg bg-mint-soft p-5 text-base text-ink">
+      <p role="status" className="rounded-lg bg-surface p-5 text-base text-ink">
         Dank je wel. Ik neem binnen twee werkdagen contact met je op. Demmy
       </p>
     )
@@ -80,10 +83,10 @@ export function PartnerFormulier() {
       />
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="bericht" className="text-sm font-medium text-ink">
-          Bericht <span className="font-normal text-muted-foreground">(optioneel)</span>
+        <Label htmlFor="bericht">
+          Bericht<span className="font-normal text-muted-foreground">(optioneel)</span>
         </Label>
-        <textarea
+        <Textarea
           id="bericht"
           name="bericht"
           rows={4}
@@ -94,12 +97,11 @@ export function PartnerFormulier() {
           onBlur={() => verlaten("bericht")}
           aria-invalid={fouten.bericht ? true : undefined}
           aria-describedby={fouten.bericht ? "bericht-fout" : undefined}
-          className="rounded-md border border-line-strong bg-surface p-4 text-base text-ink placeholder:text-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
         />
         {fouten.bericht && (
-          <p id="bericht-fout" className="text-sm text-error">
+          <Foutmelding id="bericht-fout">
             {fouten.bericht}
-          </p>
+          </Foutmelding>
         )}
       </div>
 
@@ -123,7 +125,11 @@ export function PartnerFormulier() {
         </p>
       )}
 
-      <VerderKnop bezig={bezig}>{bezig ? "Bezig met versturen..." : "Versturen"}</VerderKnop>
+      <Button type="submit" variant="primair" size="groot" disabled={bezig} className="w-full md:w-auto md:self-start">
+
+        {bezig ? "Bezig met versturen..." : "Versturen"}
+
+      </Button>
     </form>
   )
 }

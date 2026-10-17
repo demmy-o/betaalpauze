@@ -43,6 +43,28 @@ betaalpauze.nl/
 - **Motion** voor alle animaties, geen CSS keyframes
 - **Zod** voor validatie van formulierdata
 
+## Design system: eerst Storybook
+
+Storybook is de lijst van alle UI-onderdelen van Betaalpauze. Starten: `npm run storybook` (http://localhost:6006).
+Kleuren, tekst, vormen en beweging staan onder Fundamenten. De regels erachter staan in `docs/design.md`.
+
+**Voordat je een UI-onderdeel bouwt of aanpast** (knop, veld, kaart, melding, menu, kop, label, keuzeknop, enz.):
+
+1. **Zoek eerst of het al bestaat.**
+   - Met de Storybook MCP-server (`storybook`, werkt als Storybook draait): gebruik `docs-list` en daarna `docs-show` voor de props en voorbeelden.
+   - Draait Storybook niet? Zoek met Glob op `**/*.stories.tsx` en lees `stories/*.mdx`. Dat is dezelfde lijst.
+2. **Bestaat het?** Gebruik het. Maak geen eigen variant ernaast met losse Tailwind-klassen.
+3. **Past het bijna?** Pas het bestaande component aan en werk de story bij. Zeg in je samenvatting wat je veranderd hebt.
+4. **Bestaat het echt niet?** Bouw een nieuw component en maak er meteen een story bij. Zeg in je samenvatting dat het nieuw is.
+
+Verder:
+
+- **Een component is pas klaar met een story.** Zet `Naam.stories.tsx` naast het component. Gebruik een Nederlandse titel (`Formulier/Veld`), `tags: ["autodocs"]` en een korte beschrijving: wanneer gebruik je het en wanneer niet. Maak een story per toestand (standaard, fout, uitgeschakeld, bezig).
+- **Geen hex-waarden in code.** Gebruik de tokens uit `app/globals.css` (zie Fundamenten/Kleuren).
+- **Stories importeren geen server-code.** Bestanden met `server-only` of `"use server"` werken niet in Storybook. Houd het uiterlijk in een component zonder server-acties en geef de actie als prop mee.
+- **Na een wijziging aan een component of story:** draai `npm run build-storybook`. Die moet slagen. Controleer het ook in de browser, op mobiel en op desktop.
+- Hoort het nieuwe onderdeel op een lijst met vaste afspraken? Zet het dan ook in `stories/Welkom.mdx`.
+
 ## Referentie: v1 prototype
 
 Er is een eerder prototype op:
@@ -73,10 +95,7 @@ De site draait op **Netlify** (project `betaalpauze`, gekoppeld aan deze GitHub-
 
 Wat we bouwen staat in `docs/mvp-v1.md`. De tickets staan in Notion: database Roadmap, weergave MVP-sprint.
 
-Hoe het eruitziet staat in `docs/design.md` (regels voor kleur, copy, formulieren, states en motion). De tokens staan in `app/globals.css`. `docs/design-tokens.css` is alleen de referentie, niet importeren. Twee namen uit `design.md` heten in de code anders, omdat shadcn ze al gebruikt:
-
-- design `muted` (tekstkleur) is `text-muted-foreground`
-- design `accent` (violet) is `violet`, `violet-strong` en `violet-tint`
+Hoe het eruitziet staat in `docs/design.md` (regels voor kleur, copy, formulieren, states en motion). De tokens staan in `app/globals.css`, gebaseerd op het palet uit Figma "Betaalpauze Design". Gebruik alleen kleuren uit dat palet (zie Fundamenten/Kleuren in Storybook). `docs/design-tokens.css` is alleen de referentie, niet importeren. Eén naam uit `design.md` heet in de code anders, omdat shadcn hem al gebruikt: design `muted` (tekstkleur) is `text-muted-foreground`.
 
 1. **Eén stap tegelijk.** Werk aan één ticket en begin niet aan het volgende.
 2. **Na elke stap testen in de browser.** Gebruik Playwright op http://localhost:3000 en kijk of het werkt zoals het ticket zegt.

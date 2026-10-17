@@ -1,72 +1,95 @@
 "use client"
 
-import { useState } from "react"
+import { createContext, useContext, useState } from "react"
 import Link from "next/link"
+import { ChevronLeftIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 import type { z } from "zod"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { Foutmelding } from "@/components/ui/foutmelding"
 
 // Stap 1 t/m 4: het formulier. Stap 5: je voorstel. Stap 6: je brief.
 export const AANTAL_STAPPEN = 6
 
-// Bovenaan elke stap: terug-link, "Stap X van 6" en een balk.
-// Zonder "terug" gaat de link naar de vorige stap van het formulier. Met terug={null} is er geen link.
-export function StapKop({
+// Eén stap in de aanvraag, naar het voorbeeld van Lemonade: rust en focus.
+// De vraag groot en gecentreerd, daaronder de antwoorden in een smalle kolom.
+// De voortgang staat in de kopbalk (FlowKop). De terugknop staat naast de knop "Verder" (zie VerderKnop).
+// Zonder "terug" gaat de terugknop naar de vorige stap van het formulier. Met terug={null} is er geen terugknop.
+export function Stap({
   stap,
   titel,
   uitleg,
   terug,
+  kolom = "formulier",
+  breed,
+  children,
 }: {
   stap: number
   titel: string
   uitleg?: string
   terug?: string | null
+  kolom?: "formulier" | "tekst" // tekst: bredere kolom, voor de brief
+  breed?: React.ReactNode // inhoud over de hele breedte van de kop, zoals keuzetegels naast elkaar
+  children: React.ReactNode
 }) {
   const vorige = terug === undefined ? `/aanvragen?stap=${stap - 1}` : terug
 
   return (
-    <div className="flex flex-col gap-6">
-      {vorige && (
-        <Link
-          href={vorige}
-          className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
-        >
-          Terug
-        </Link>
-      )}
+    <TerugContext.Provider value={vorige}>
+      <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-3 text-center">
+          <h1 className="text-h1 text-balance">{titel}</h1>
+          {uitleg && <p className="mx-auto max-w-prose text-lead text-balance">{uitleg}</p>}
+        </div>
 
-      <div className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">
-          Stap {stap} van {AANTAL_STAPPEN}
-        </p>
+        {breed}
+
         <div
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={AANTAL_STAPPEN}
-          aria-valuenow={stap}
-          aria-label={`Stap ${stap} van ${AANTAL_STAPPEN}`}
-          className="h-1 w-full overflow-hidden rounded-full bg-line"
+          data-kolom={kolom === "tekst" ? undefined : "smal"}
+          className={cn("group/kolom mx-auto flex w-full flex-col gap-8", kolom === "tekst" ? "max-w-prose" : "max-w-form")}
         >
-          <div
-            className="h-full rounded-full bg-violet transition-[width] duration-[400ms] ease-in-out"
-            style={{ width: `${(stap / AANTAL_STAPPEN) * 100}%` }}
-          />
+          {children}
         </div>
       </div>
+    </TerugContext.Provider>
+  )
+}
 
-      <div className="flex flex-col gap-2">
-        <h1 className="text-h1 text-ink">{titel}</h1>
-        {uitleg && <p className="text-lead text-muted-foreground">{uitleg}</p>}
-      </div>
+// Het terug-adres van de stap waar je in zit. Stap zet het, TerugKnop leest het.
+const TerugContext = createContext<string | null>(null)
+
+// Ronde secundaire knop met een pijltje naar links. StapKnoppen zet hem naast de hoofdactie.
+export function TerugKnop() {
+  const vorige = useContext(TerugContext)
+  if (!vorige) return null
+  return (
+    <Link
+      href={vorige}
+      aria-label="Terug"
+      className={buttonVariants({ variant: "secundair", size: "groot", alleenIcoon: true })}
+    >
+      <ChevronLeftIcon aria-hidden />
+    </Link>
+  )
+}
+
+// De knoppen onderaan een stap: de terugknop links (als die er is), zo klein mogelijk.
+// De hoofdactie ernaast vult de rest van de breedte, net zo breed als de velden erboven.
+export function StapKnoppen({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex w-full gap-3 *:data-[slot=button]:flex-1">
+      <TerugKnop />
+      {children}
     </div>
   )
 }
 
 type VeldProps = Omit<React.ComponentProps<"input">, "onChange" | "onBlur" | "value"> & {
+  voorbeeld?: string // hinttekst in het veld: "Bijvoorbeeld: …"
   id: string
   label: string
-  hulp?: string
   waarde: string
   fout?: string
   optioneel?: boolean
@@ -74,21 +97,16 @@ type VeldProps = Omit<React.ComponentProps<"input">, "onChange" | "onBlur" | "va
   onVerlaten: () => void
 }
 
-// Label boven het veld, hulptekst eronder, dan het veld, dan de foutmelding.
-export function Veld({ id, label, hulp, waarde, fout, optioneel, onWaarde, onVerlaten, ...rest }: VeldProps) {
-  const beschrijving = [hulp && `${id}-hulp`, fout && `${id}-fout`].filter(Boolean).join(" ")
+// Label boven het veld, dan het veld met een voorbeeld als hinttekst, dan de foutmelding.
+export function Veld({ id, label, waarde, fout, optioneel, onWaarde, onVerlaten, ...rest }: VeldProps) {
+  const beschrijving = fout ? `${id}-fout` : ""
 
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="text-sm font-medium text-ink">
+      <Label htmlFor={id}>
         {label}
-        {optioneel && <span className="font-normal text-muted-foreground"> (optioneel)</span>}
+        {optioneel && <span className="font-normal text-muted-foreground">(optioneel)</span>}
       </Label>
-      {hulp && (
-        <p id={`${id}-hulp`} className="text-sm text-muted-foreground">
-          {hulp}
-        </p>
-      )}
       <Input
         id={id}
         name={id}
@@ -97,13 +115,10 @@ export function Veld({ id, label, hulp, waarde, fout, optioneel, onWaarde, onVer
         onBlur={onVerlaten}
         aria-invalid={fout ? true : undefined}
         aria-describedby={beschrijving || undefined}
-        className="h-12 rounded-md border-line-strong bg-surface px-4 focus-visible:border-line-strong focus-visible:ring-0 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet text-base text-ink placeholder:text-subtle md:text-base aria-invalid:border-error"
         {...rest}
       />
       {fout && (
-        <p id={`${id}-fout`} className="text-sm text-error">
-          {fout}
-        </p>
+        <Foutmelding id={`${id}-fout`}>{fout}</Foutmelding>
       )}
     </div>
   )
@@ -137,18 +152,6 @@ export function FoutSamenvatting({ fouten }: { fouten: Record<string, string | u
         ))}
       </ul>
     </div>
-  )
-}
-
-export function VerderKnop({ children, bezig }: { children: React.ReactNode; bezig?: boolean }) {
-  return (
-    <Button
-      type="submit"
-      disabled={bezig}
-      className="h-12 w-full rounded-full bg-ink px-6 text-base font-medium text-white hover:bg-ink-soft sm:w-auto sm:self-start"
-    >
-      {children}
-    </Button>
   )
 }
 

@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { buttonVariants } from "@/components/ui/button"
 
 // Hoofdmenu voor de marketingpagina's (/ en /partners). Niet in de aanvraagflow (docs/design.md, hoofdstuk 10).
 // Desktop: tekstlinks op een witte balk, eventueel één pill-knop rechts.
-// Mobiel: knop "Menu" opent een menu over het hele scherm in lilac.
+// Mobiel: knop "Menu" opent een menu over het hele scherm in mint.
 
 export type MenuItem = "klanten" | "schuldeisers" | "beta"
 
@@ -71,7 +72,7 @@ export function Menu({ actief, knop }: Props) {
                 <Link
                   href={l.href}
                   aria-current={l.id === actief ? "page" : undefined}
-                  className="flex h-11 items-center border-b-2 border-transparent text-base text-ink-soft hover:text-ink aria-[current=page]:border-violet aria-[current=page]:text-ink"
+                  className="flex h-11 items-center border-b-2 border-transparent text-base text-ink-soft hover:text-ink aria-[current=page]:border-ink aria-[current=page]:text-ink"
                 >
                   {l.tekst}
                 </Link>
@@ -81,7 +82,7 @@ export function Menu({ actief, knop }: Props) {
           {knop && (
             <Link
               href={knop.href}
-              className="flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-soft"
+              className={buttonVariants({ variant: "primair", size: "middel" })}
             >
               {knop.tekst}
             </Link>
@@ -95,7 +96,7 @@ export function Menu({ actief, knop }: Props) {
           onClick={() => setOpen(true)}
           aria-expanded={open}
           aria-controls="mobiel-menu"
-          className="flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium text-ink hover:bg-lilac-soft lg:hidden"
+          className="flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium text-ink hover:bg-mint-tint lg:hidden"
         >
           Menu
           <svg aria-hidden width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75">
@@ -111,7 +112,7 @@ export function Menu({ actief, knop }: Props) {
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
-          className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-lilac lg:hidden"
+          className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-mint lg:hidden"
         >
           <div className="flex items-center justify-between gap-6 px-5 py-4 md:px-8">
             <Link href="/" onClick={() => setOpen(false)} className="flex h-10 items-center">
@@ -120,7 +121,7 @@ export function Menu({ actief, knop }: Props) {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium text-ink hover:bg-lilac-soft"
+              className="flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium text-ink hover:bg-mint-tint"
             >
               Sluiten
               <svg aria-hidden width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75">
@@ -136,7 +137,7 @@ export function Menu({ actief, knop }: Props) {
                     href={l.href}
                     onClick={() => setOpen(false)}
                     aria-current={l.id === actief ? "page" : undefined}
-                    className="flex min-h-12 items-center text-h2 text-ink underline-offset-8 aria-[current=page]:underline aria-[current=page]:decoration-violet aria-[current=page]:decoration-2"
+                    className="flex min-h-12 items-center text-h2 text-ink underline-offset-8 aria-[current=page]:underline aria-[current=page]:decoration-ink aria-[current=page]:decoration-2"
                   >
                     {l.tekst}
                   </Link>
@@ -147,7 +148,7 @@ export function Menu({ actief, knop }: Props) {
               <Link
                 href={knop.href}
                 onClick={() => setOpen(false)}
-                className="flex h-12 w-full items-center justify-center rounded-full bg-ink px-6 text-base font-medium text-white hover:bg-ink-soft"
+                className={buttonVariants({ variant: "primair", size: "groot", className: "w-full" })}
               >
                 {knop.tekst}
               </Link>

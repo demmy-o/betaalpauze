@@ -2,10 +2,14 @@
 
 import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { adresCompleet, korteNaam, type GevondenBedrijf, type RegelingVia } from "@/lib/regeling"
 import { schuldeiserSchema, type Schuldeiser } from "./schema"
-import { FoutSamenvatting, StapKop, Veld, VerderKnop, useStapFormulier } from "./onderdelen"
+import { FoutSamenvatting, Stap, Veld, StapKnoppen, useStapFormulier } from "./onderdelen"
+import { Foutmelding } from "@/components/ui/foutmelding"
+import { Kaart } from "@/components/ui/kaart"
+import { Veldengroep } from "@/components/ui/veldengroep"
 
 const MIN_TEKENS = 3
 const WACHTTIJD_MS = 300
@@ -119,33 +123,41 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
 
   return (
     <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
-      <StapKop
+      <Stap
         stap={1}
         titel="Bij welk bedrijf moet je betalen?"
         uitleg="Zoek het bedrijf dat de factuur stuurde."
-      />
+      >
+        <FoutSamenvatting fouten={formulier.samenvatting} />
 
-      <FoutSamenvatting fouten={formulier.samenvatting} />
+        {gekozen ? (
+          <>
+            <GekozenBedrijf
+              naam={waarden.naam}
+              kvkNummer={waarden.kvkNummer}
+              straat={waarden.straat}
+              postcode={waarden.postcode}
+              plaats={waarden.plaats}
+              laden={adresLaden}
+              fout={adresFout}
+              onOpnieuw={kiesOpnieuw}
+            />
+            {!adresLaden && <RouteKeuze formulier={formulier} />}
+          </>
+        ) : (
+          <BedrijfZoeken fout={fouten.kvkNummer} onKies={kies} />
+        )}
 
-      {gekozen ? (
-        <>
-          <GekozenBedrijf
-            naam={waarden.naam}
-            kvkNummer={waarden.kvkNummer}
-            straat={waarden.straat}
-            postcode={waarden.postcode}
-            plaats={waarden.plaats}
-            laden={adresLaden}
-            fout={adresFout}
-            onOpnieuw={kiesOpnieuw}
-          />
-          {!adresLaden && <RouteKeuze formulier={formulier} />}
-        </>
-      ) : (
-        <BedrijfZoeken fout={fouten.kvkNummer} onKies={kies} />
-      )}
+        <StapKnoppen>
 
-      <VerderKnop bezig={adresLaden}>Verder naar de factuur</VerderKnop>
+          <Button type="submit" variant="primair" size="groot" disabled={adresLaden}>
+
+            Verder naar de factuur
+
+          </Button>
+
+        </StapKnoppen>
+      </Stap>
     </form>
   )
 }
@@ -168,14 +180,12 @@ function RouteKeuze({ formulier }: { formulier: Formulier }) {
   const adresBekend = adresCompleet(waarden)
   // Het adres van de factuur gebruiken: als we geen volledig adres hebben, of als de gebruiker dat wil.
   const eigenAdres = !adresBekend || waarden.postAdresAnders === "ja"
-  const knopStijl =
-    "min-h-11 self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
 
   return (
     <div id="route" tabIndex={-1} className="flex flex-col gap-6 outline-none">
       {/* Route 3: het bedrijf wil het in de eigen omgeving regelen */}
       {heeftPortaal && (
-        <section className="flex flex-col gap-3 rounded-lg bg-sky-soft p-5">
+        <Kaart className="gap-3">
           <h2 className="font-medium text-ink">
             {naam} regelt betalingsregelingen {PORTAAL_TEKST[via]}
           </h2>
@@ -187,7 +197,7 @@ function RouteKeuze({ formulier }: { formulier: Formulier }) {
                 href={waarden.regelingUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-white hover:bg-ink-soft"
+                className={buttonVariants({ variant: "primair", size: "middel" })}
               >
                 Naar {naam}
               </a>
@@ -195,64 +205,59 @@ function RouteKeuze({ formulier }: { formulier: Formulier }) {
             {waarden.regelingTelefoon && (
               <a
                 href={`tel:${waarden.regelingTelefoon.replace(/\s/g, "")}`}
-                className="flex h-11 items-center rounded-full border border-ink px-5 text-sm font-medium text-ink hover:bg-surface"
+                className={buttonVariants({ variant: "secundair", size: "middel" })}
               >
                 Bel {waarden.regelingTelefoon}
               </a>
             )}
           </div>
           {waarden.route !== "post" && (
-            <button type="button" onClick={() => zet("route", "post")} className={knopStijl}>
+            <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("route", "post")}>
               Toch een brief sturen? Wij sturen hem per post.
-            </button>
+            </Button>
           )}
-        </section>
+        </Kaart>
       )}
 
       {fouten.route && (
-        <p id="route-fout" className="text-sm text-error">
+        <Foutmelding id="route-fout">
           {fouten.route}
-        </p>
+        </Foutmelding>
       )}
 
       {/* Route 1: per mail */}
       {waarden.route === "email" && (
-        <div className="flex flex-col gap-2">
+        <Veldengroep>
           <Veld
             id="email"
             label="E-mailadres van het bedrijf"
-            hulp={
-              via === "email"
-                ? "Dit adres kennen we al. Klopt het niet met je factuur? Pas het dan aan."
-                : "Staat meestal op de factuur, bij contact of klantenservice. Hier sturen we je voorstel naartoe."
-            }
             type="email"
             inputMode="email"
             autoComplete="off"
-            placeholder="klantenservice@bedrijf.nl"
+            voorbeeld="klantenservice@bedrijf.nl"
             waarde={waarden.email}
             fout={fouten.email}
             onWaarde={(w) => zet("email", w)}
             onVerlaten={() => verlaten("email")}
           />
-          <button type="button" onClick={() => zet("route", "post")} className={knopStijl}>
+          <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("route", "post")}>
             Geen e-mailadres? Wij sturen de brief per post.
-          </button>
-        </div>
+          </Button>
+        </Veldengroep>
       )}
 
       {/* Route 2: per post */}
       {waarden.route === "post" && (
-        <section className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5">
+        <Veldengroep>
           <h2 className="font-medium text-ink">Wij sturen je brief per post</h2>
           {adresBekend && !eigenAdres && (
             <>
               <p className="text-sm text-ink">
                 Naar {waarden.naam}, {waarden.straat}, {waarden.postcode} {waarden.plaats}.
               </p>
-              <button type="button" onClick={() => zet("postAdresAnders", "ja")} className={knopStijl}>
+              <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("postAdresAnders", "ja")}>
                 Staat er op je factuur een ander adres? Gebruik dan dat.
-              </button>
+              </Button>
             </>
           )}
           {eigenAdres && (
@@ -266,7 +271,7 @@ function RouteKeuze({ formulier }: { formulier: Formulier }) {
                 id="postStraat"
                 label="Straat en huisnummer, of postbus"
                 autoComplete="off"
-                placeholder="Postbus 123"
+                voorbeeld="Postbus 123"
                 waarde={waarden.postStraat}
                 fout={fouten.postStraat}
                 onWaarde={(w) => zet("postStraat", w)}
@@ -276,7 +281,7 @@ function RouteKeuze({ formulier }: { formulier: Formulier }) {
                 id="postPostcode"
                 label="Postcode"
                 autoComplete="off"
-                placeholder="1234 AB"
+                voorbeeld="1234 AB"
                 waarde={waarden.postPostcode}
                 fout={fouten.postPostcode}
                 onWaarde={(w) => zet("postPostcode", w)}
@@ -285,6 +290,7 @@ function RouteKeuze({ formulier }: { formulier: Formulier }) {
               <Veld
                 id="postPlaats"
                 label="Plaats"
+                voorbeeld="Leiden"
                 autoComplete="off"
                 waarde={waarden.postPlaats}
                 fout={fouten.postPlaats}
@@ -292,19 +298,19 @@ function RouteKeuze({ formulier }: { formulier: Formulier }) {
                 onVerlaten={() => verlaten("postPlaats")}
               />
               {adresBekend && (
-                <button type="button" onClick={() => zet("postAdresAnders", "")} className={knopStijl}>
+                <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("postAdresAnders", "")}>
                   Toch het bekende adres gebruiken: {waarden.straat}, {waarden.postcode} {waarden.plaats}
-                </button>
+                </Button>
               )}
             </>
           )}
           <p className="text-sm text-muted-foreground">Een brief per post is een paar dagen onderweg.</p>
           {via !== "portaal" && via !== "formulier" && via !== "telefoon" && (
-            <button type="button" onClick={() => zet("route", "email")} className={knopStijl}>
+            <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("route", "email")}>
               Heb je toch een e-mailadres? Dan mailen we de brief.
-            </button>
+            </Button>
           )}
-        </section>
+        </Veldengroep>
       )}
     </div>
   )
@@ -344,38 +350,35 @@ function BedrijfZoeken({ fout, onKies }: { fout?: string; onKies: (b: GevondenBe
     return () => clearTimeout(timer)
   }, [schoon, zoekenMag, gevonden, mislukt])
 
-  const beschrijving = ["kvkNummer-hulp", fout && "kvkNummer-fout"].filter(Boolean).join(" ")
+  const beschrijving = fout ? "kvkNummer-fout" : undefined
 
   return (
-    <div className="flex flex-col gap-4">
+    <Veldengroep>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="kvkNummer" className="text-sm font-medium text-ink">
+        <Label htmlFor="kvkNummer">
           Naam van het bedrijf
         </Label>
-        <p id="kvkNummer-hulp" className="text-sm text-muted-foreground">
-          Typ minstens 3 letters, bijvoorbeeld de naam bovenaan je factuur.
-        </p>
         <Input
           id="kvkNummer"
           type="search"
           autoComplete="off"
+          voorbeeld="Zilveren Kruis"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           aria-invalid={fout ? true : undefined}
           aria-describedby={beschrijving}
-          className="h-12 rounded-md border-line-strong bg-surface px-4 focus-visible:border-line-strong focus-visible:ring-0 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet text-base text-ink placeholder:text-subtle md:text-base aria-invalid:border-error"
         />
         {fout && (
-          <p id="kvkNummer-fout" className="text-sm text-error">
+          <Foutmelding id="kvkNummer-fout">
             {fout}
-          </p>
+          </Foutmelding>
         )}
       </div>
 
       <div aria-live="polite" className="flex flex-col gap-2">
         {laden && <p className="text-sm text-muted-foreground">We zoeken...</p>}
         {zoekFout && (
-          <p className="text-sm text-error">Zoeken lukt nu even niet. Probeer het over een minuut opnieuw.</p>
+          <Foutmelding>Zoeken lukt nu even niet. Probeer het over een minuut opnieuw.</Foutmelding>
         )}
         {!laden && resultaten?.length === 0 && (
           <p className="text-sm text-muted-foreground">
@@ -389,7 +392,7 @@ function BedrijfZoeken({ fout, onKies }: { fout?: string; onKies: (b: GevondenBe
                 <button
                   type="button"
                   onClick={() => onKies(b)}
-                  className="flex min-h-11 w-full flex-col gap-1 rounded-lg border border-line bg-surface p-4 text-left transition-colors duration-[120ms] hover:border-line-strong hover:bg-lilac-soft"
+                  className="flex min-h-11 w-full flex-col gap-1 rounded-lg border border-line bg-surface p-4 text-left transition-colors duration-[120ms] hover:border-line-strong hover:bg-canvas"
                 >
                   <span className="font-medium text-ink">{b.naam}</span>
                   <span className="text-sm text-muted-foreground">
@@ -402,7 +405,7 @@ function BedrijfZoeken({ fout, onKies }: { fout?: string; onKies: (b: GevondenBe
           </ul>
         )}
       </div>
-    </div>
+    </Veldengroep>
   )
 }
 
@@ -426,7 +429,7 @@ function GekozenBedrijf({
   onOpnieuw: () => void
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-lg bg-lilac-soft p-5">
+    <Kaart as="div" className="gap-3">
       <p className="text-sm text-muted-foreground">Gekozen bedrijf</p>
       <div className="flex flex-col gap-1" aria-live="polite">
         <p className="text-lg font-medium text-ink">{naam}</p>
@@ -445,13 +448,15 @@ function GekozenBedrijf({
         )}
         {fout && <p className="text-sm text-muted-foreground">{fout}</p>}
       </div>
-      <button
+      <Button
         type="button"
         onClick={onOpnieuw}
-        className="min-h-11 self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
+        variant="tertiair"
+        size="klein"
+        className="self-start"
       >
         Ander bedrijf kiezen
-      </button>
-    </div>
+      </Button>
+    </Kaart>
   )
 }

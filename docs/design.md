@@ -39,15 +39,15 @@ De ronde hoeken en pastels maken het onderwerp benaderbaar. De tekst blijft keih
 - **Doe niet:** de gevolgen vaag houden omdat het scherm er vriendelijk uitziet.
 
 ### 2.4 Luchtige koppen, geen schreeuw
-Koppen zijn groot maar niet zwaar. Gewicht 500, ruime regelafstand, geen hoofdletters.
+Koppen zijn groot maar niet zwaar. Gewicht 600 (semibold), ruime regelafstand, geen hoofdletters.
 
-- **Doe:** 48px op gewicht 500 met normale letterafstand.
+- **Doe:** 48px op gewicht 600 met normale letterafstand.
 - **Doe niet:** 800-gewicht, uppercase of extra strakke tracking.
 
 ### 2.5 Illustratie mag, decoratie niet
 Handgetekende lijnfiguren geven menselijkheid. Ze staan naast de tekst, nooit erachter.
 
-- **Doe:** één tekening per sectie, in lijn, in ink of accentkleur.
+- **Doe:** één tekening per sectie, in lijn, in ink of leisteen.
 - **Doe niet:** stockfoto's, 3D-renders, iconen zonder betekenis, tekening onder tekst.
 
 ---
@@ -56,39 +56,42 @@ Handgetekende lijnfiguren geven menselijkheid. Ze staan naast de tekst, nooit er
 
 Geen hex-waarden hier — die staan in `globals.css`. Dit zijn de regels.
 
-**Basis**
+**Eén palet.** Alle hoofdkleuren komen uit het palet in Figma "Betaalpauze Design": `ink`, `leisteen`, wit en vijf
+families (mint, rood, groen, geel, grijs) met elk drie stappen: sterk, `-soft` en `-tint`. Andere kleuren gebruiken
+we niet. Daarnaast zijn er steunkleuren voor tekst, lijnen en de pagina.
 
-| Categorie | Wanneer gebruiken | Nooit gebruiken voor |
+**Palet**
+
+| Kleur | Wanneer gebruiken | Nooit gebruiken voor |
 |---|---|---|
-| `ink` (donker, licht paarse zweem) | Koppen, bodytekst, primaire knop, illustratielijnen | Grote achtergrondvlakken (alleen de footer) |
-| `muted` | Ondersteunende tekst, labels, helptekst | Tekst die nodig is om verder te kunnen |
-| `subtle` | Iconen, disabled, placeholders — **alleen op wit of canvas** | Elke tekst op een pastelvlak (te weinig contrast) |
+| `ink` | Display, koppen, labels, links, primaire knop, focusring | Grote achtergrondvlakken (alleen de footer) |
+| `leisteen` | Tweede donkere kleur: iconen, illustratielijnen | Lopende tekst |
+| `mint` | De vlakkleur: hero, zijbalk, illustratieblok, mobiel menu | Status |
+| `rood` | Fout: icoon, rand van een fout veld. `rood-tint` als achtergrond van een foutmelding | Tekst (te weinig contrast) |
+| `groen` | Gelukt: icoon, stip. `groen-tint` als achtergrond | Tekst |
+| `geel` | Let op: icoon, stip, tag. `geel-tint` als achtergrond, ook voor de testbalk | Tekst |
+| `grijs` | Neutraal: icoon, stip. `grijs-tint` als achtergrond van een neutrale melding | Tekst |
+
+**Steunkleuren**
+
+| Kleur | Wanneer gebruiken | Nooit gebruiken voor |
+|---|---|---|
+| `ink-soft` | Platte tekst en introtekst. De standaard tekstkleur | Koppen |
+| `muted` | Hulptekst onder een label | Tekst die nodig is om verder te kunnen |
+| `subtle` | Disabled, placeholders, **alleen op wit of canvas** | Elke tekst op een gekleurd vlak |
 | `line` | Scheidingslijnen, kaartranden | Randen van invoervelden |
 | `line-strong` | Randen van invoervelden, checkbox, radio | Decoratieve lijnen |
-| `canvas` / `surface` | Neutrale pagina- en kaartachtergrond | Tekst |
-| `accent` (violet) | Links, focusring, actieve stap, secundaire knop | Koppen, decoratie, grote vlakken |
-
-**Pastels — alleen als achtergrond van een sectie of kaart**
-
-| Pastel | Waarvoor | Sfeer |
-|---|---|---|
-| `lilac` | Hero, hoofdboodschap, de belangrijkste sectie | Kalm, merkherkenning |
-| `mint` | Wat kan, wat helpt, positieve uitkomst | Bemoedigend |
-| `peach` | Uitleg, gevolgen, "let op dat…" | Warm, aandacht zonder alarm |
-| `sky` | Cijfers, overzicht, feiten | Zakelijk |
-| `blush` | Verhaal, mens, quote | Persoonlijk |
-
-Elke pastel heeft een `-soft` variant voor kleine vlakken binnen een sectie.
+| `canvas` / `surface` | Pagina- en kaartachtergrond | Tekst |
+| `canvas-donker` | Vlak om een groep invulvelden | Kaarten, secties |
 
 Extra regels:
 
-- Maximaal één verzadigde pastel per viewport. Naast elkaar liggende secties krijgen nooit
-  dezelfde kleur.
-- Op een pastelvlak gebruik je alleen `ink` en `muted` als tekstkleur. Nooit `subtle`, nooit
-  `accent` als bodytekst.
-- Pastel betekent onderwerp, niet status. Groen op een sectie zegt niet "gelukt".
-- Statuskleuren (`success`, `warning`, `error`) zijn iets anders dan pastels en worden alleen
-  gebruikt in meldingen en validatie, nooit als sectiekleur.
+- Naast elkaar liggende secties krijgen nooit dezelfde kleur.
+- Info-, bevestigings- en keuzevlakken zijn wit (`surface`) op de warme achtergrond.
+- Op een gekleurd vlak gebruik je alleen `ink`, `ink-soft` en `muted` als tekstkleur. Nooit `subtle`.
+- Statuskleuren (`error`, `success`, `warning`, `neutraal`) verwijzen naar het palet en worden alleen gebruikt in
+  meldingen, labels en validatie, nooit als sectiekleur.
+- De tekst in een melding is altijd `ink`. De kleur zit in het icoon en de achtergrond.
 - Statuskleur nooit als enige signaal: altijd een icoon of tekstlabel erbij.
 - Bedragen en datums zijn `ink`, ook als ze negatief zijn. Rood maakt een schuld dramatischer
   dan nodig.
@@ -129,14 +132,15 @@ medewerker aan de balie praat.
 
 Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 
-- Breakpoints: `sm` 640, `md` 768, `lg` 1024, `xl` 1280.
+- Twee breakpoints, drie formaten: mobiel tot 768, tablet (`md`) 768 tot 1024, desktop (`lg`) vanaf 1024.
+  Alleen `md:` en `lg:` bestaan. Container maximaal 1200px. Gebruik het component `Pagina`.
 - Onder `md`: alles één kolom. Geen twee kolommen naast elkaar, ook geen korte velden.
 - Boven `lg`: content krijgt meer ruimte, niet meer kolommen. Een formulier blijft één kolom.
 - Pastelsecties lopen op elke maat volledig van rand tot rand. Nooit een pastelvlak met witte
   marges eromheen op mobiel.
 - Touch targets minimaal 44×44px, minimaal 8px tussenruimte.
 - Primaire knop op mobiel: volle breedte, onderaan het contentblok. Niet zwevend over de inhoud.
-- Horizontale paginamarge: 20px mobiel, 32px tablet, 48px+ desktop.
+- Horizontale paginamarge: 20px mobiel, 32px tablet, 48px desktop.
 - Spacingritme is een veelvoud van 4. Tussen secties 56px mobiel / 112px desktop — pastelbanden
   hebben lucht nodig, anders worden het balken.
 - Tekstregels maximaal ~70 tekens.
@@ -149,13 +153,48 @@ Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 
 - Container max 1200px, gecentreerd. Pastelachtergrond is full-bleed, de content erbinnen niet.
 - Lopende tekst max 680px.
-- Formulierkolom max 480px, links uitgelijnd binnen een gecentreerde container.
+- Formulierkolom max 480px, gecentreerd. De kop van een stap mag breder zijn: tot 880px.
+- Overzichten en bevestigingen (Mijn plan, verstuurd, betaald) gebruiken een brede kolom van 880px. Op tablet en
+  mobiel schaalt die mee naar de schermbreedte.
 - Een pagina is een stapel gekleurde banden. Ritme: wit → pastel → wit → pastel → donkere footer.
-- Kaarten: gevuld met een pastel of met `surface` + dunne `line` rand. Radius 16px. Geen
+- Kaarten: `surface` op de warme achtergrond, eventueel met een dunne `line` rand. Radius 16px. Geen
   slagschaduw. Schaduw alleen voor dingen die echt zweven (dropdown, dialog).
 - Kaarten in een raster hebben gelijke hoogte en de actie staat onderaan uitgelijnd.
 - Dashboard: één kolom kaarten op mobiel, 2–3 op desktop. Geen sidebar in de aanvraagflow.
 - Geen icoon zonder tekstlabel in de hoofdnavigatie.
+
+---
+
+## 6b. Opbouw van een stap
+
+Naar het voorbeeld van Lemonade: rust en focus, één vraag per scherm. Geen chat, gewoon schermen na elkaar.
+
+- **Kopbalk** bovenaan, in de kleur van de achtergrond: logo links, zonder link. De lijn onder de balk is de voortgang en vult zich groen.
+  Een rond portret staat in het midden, half over de lijn. Zo weet je dat er een mens achter zit.
+- **Lucht** boven de vraag: de vraag begint ruim onder de kopbalk.
+- **De vraag groot en gecentreerd**, tot 880px breed, met de uitleg eronder.
+- **De antwoorden in een smalle kolom** van 480px, gecentreerd. Labels en velden zijn daarbinnen links uitgelijnd.
+- **Keuzes met een tekening** mogen over de hele breedte van de vraag, als tegels naast elkaar (Keuzetegel).
+- **De knoppen** zijn even breed als de velden: links een ronde secundaire terugknop (pijltje naar links), zo klein
+  mogelijk, en de hoofdknop vult de rest van de breedte.
+- **Kaarten** (uitleg, bevestiging, samenvatting) zijn op tablet en desktop breder dan de kolom: 680px.
+- **Invulvelden** staan samen in een Veldengroep: een vlak in `canvas-donker`, net zo breed als de kaarten (680px), met de
+  witte velden van 480px in het midden. Knoppen staan eronder, buiten het vlak.
+- In code: `<Pagina kolom="stap">` met daarin `<Stap>`. De kopbalk komt uit de layout.
+
+---
+
+## 6c. Knoppen
+
+Drie niveaus, drie maten. Alle knoppen zijn pills.
+
+- **Primair** (gevuld, ink): de hoofdactie. Maximaal één per scherm. Geen hoverkleur.
+- **Secundair** (rand in ink): een tweede keuze naast de hoofdactie.
+- **Tertiair** (alleen tekst, onderstreept): een kleine actie.
+- **Groot** 48px voor de hoofdactie, **middel** 44px in kaarten en menu, **klein** 36px voor kleine acties
+  (het klikvlak blijft 44px).
+- Feedback: de muis wordt een handje, bij klikken zakt de knop 1px in, en de focusring is altijd zichtbaar.
+- Een icoon mag links of rechts van de tekst. Een knop met alleen een icoon is rond en heeft een `aria-label`.
 
 ---
 
@@ -164,9 +203,9 @@ Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 - Formulieren staan op `surface` of `canvas`, niet op een verzadigde pastel. Een pastel mag wel
   de sectie eromheen zijn.
 - Label altijd zichtbaar bóven het veld. Nooit alleen een placeholder als label.
-- Placeholder alleen voor een voorbeeldformaat, bijvoorbeeld "NL91 ABNA 0417 1643 00".
-- Helptekst onder het label, boven het veld, in `muted`.
-- Velden hebben radius 12px en een `line-strong` rand van 1px. Focus: 2px `accent` ring met
+- Geen hulptekst onder het label. Geef een voorbeeld als hinttekst in het veld: "Bijvoorbeeld: Zilveren Kruis".
+  De hinttekst vervangt nooit het label. Belangrijke informatie die niet in een voorbeeld past, hoort in de uitleg van de stap.
+- Velden hebben radius 12px en een `line-strong` rand van 1px. Focus: 2px `ink` ring met
   2px offset.
 - Validatie bij het verlaten van een veld (`onBlur`), niet tijdens het typen. Wel direct opnieuw
   valideren zodra de gebruiker de fout corrigeert.
@@ -175,7 +214,7 @@ Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 - Verplicht is de norm. Markeer alleen optionele velden, met "(optioneel)" in het label.
 - Groepeer maximaal 3–5 velden per stap.
 - Bedragen en IBAN: `inputmode` en `autocomplete` altijd invullen.
-- Voortgang bij meerdere stappen: "Stap 2 van 4" in tekst, plus een balk. Nooit alleen de balk.
+- Voortgang bij meerdere stappen: een groene balk. De stap ("Stap 2 van 4") staat in het label voor schermlezers.
 - Antwoorden blijven bewaard bij teruggaan. Nooit een gevuld formulier leegmaken.
 
 ---
@@ -227,14 +266,17 @@ Beweging bevestigt, ze vermaakt niet.
 
 - Marketing: horizontale nav met tekstlinks op een witte balk boven de eerste pastelsectie.
   Geen dropdowns dieper dan één niveau. Eén primaire CTA rechts als pill-knop. Op mobiel een
-  volledig scherm menu in `lilac`, niet een halve drawer.
-- Aanvraagflow: geen hoofdnavigatie. Alleen logo, "Stap X van Y" en een terug-link. De gebruiker
+  volledig scherm menu in `mint`, niet een halve drawer.
+- Aanvraagflow: geen hoofdnavigatie. Alleen de kopbalk (logo links, zonder link, met de voortgang als lijn) en een ronde
+  terugknop naast de knop "Verder".
+- Rechts in de kopbalk van de aanvraag: "Inloggen", of "Mijn plan" als je al ingelogd bent. Na inloggen ga je terug
+  naar de stap waar je was, met je antwoorden. Ben je ingelogd, dan vraagt stap 4 geen e-mailadres en geen code meer. De gebruiker
   kan niet per ongeluk uit de flow klikken.
 - Stepper: toont afgeronde, huidige en komende stappen. Afgerond = klikbaar, `ink`. Komend =
-  niet klikbaar, `muted`. Huidige stap krijgt `accent`.
+  niet klikbaar, `muted`. Huidige stap krijgt `ink` en een balk.
 - Terug gaat altijd naar de vorige stap, niet naar de startpagina. Browser-terug doet hetzelfde.
 - Afbreken van de flow vraagt om bevestiging en vertelt of het werk bewaard blijft.
-- Dashboard: maximaal 5 items. Actief item met `ink` tekst en een 2px `accent` onderlijn.
+- Dashboard: maximaal 5 items. Actief item met `ink` tekst en een 2px `ink` onderlijn.
 - Breadcrumbs alleen dieper dan twee niveaus. Anders weglaten.
-- Focus is altijd zichtbaar: 2px `accent` ring met 2px offset. Nooit `outline: none` zonder
+- Focus is altijd zichtbaar: 2px `ink` ring met 2px offset. Nooit `outline: none` zonder
   vervanging.

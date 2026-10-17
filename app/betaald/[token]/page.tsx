@@ -1,9 +1,10 @@
-import Image from "next/image"
 import Link from "next/link"
 import { bekijkToken } from "@/lib/betaling"
 import { datumLang, euro } from "@/lib/betaalplan"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { BevestigKnop } from "./BevestigKnop"
+import { Pagina } from "@/components/ui/pagina"
+import { Kaart } from "@/components/ui/kaart"
 
 export const metadata = { title: "Je betaling · Betaalpauze.nl", robots: { index: false } }
 
@@ -31,43 +32,40 @@ export default async function BetaaldPagina({
     })
 
   return (
-    <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
-      <div className="mx-auto flex max-w-form flex-col gap-8">
-        <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
-        {!info.geldig ? (
-          <LinkWerktNiet reden={info.reden} />
-        ) : antwoord === "nee" ? (
-          <NogNietBetaald token={token} schuldeiser={info.schuldeiser} bedrag={info.bedragCenten} />
-        ) : info.termijnBetaald ? (
-          <AlBetaald />
-        ) : (
-          <section className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-h1 text-ink">Heb je betaald?</h1>
-              <p className="text-lead text-muted-foreground">
-                Op {datumLang(info.vervaldatum)} moest je{" "}
-                <span className="tabular font-medium text-ink">{euro(info.bedragCenten)}</span> betalen aan{" "}
-                {info.schuldeiser}.
-              </p>
-            </div>
-            <BevestigKnop token={token} knopTekst={`Ja, ik heb ${euro(info.bedragCenten)} betaald`} />
-            <Link
-              href={`/betaald/${token}?antwoord=nee`}
-              className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
-            >
-              Nee, nog niet
-            </Link>
-          </section>
-        )}
-      </div>
-    </main>
+    <Pagina kolom="breed">
+      {!info.geldig ? (
+        <LinkWerktNiet reden={info.reden} />
+      ) : antwoord === "nee" ? (
+        <NogNietBetaald token={token} schuldeiser={info.schuldeiser} bedrag={info.bedragCenten} />
+      ) : info.termijnBetaald ? (
+        <AlBetaald />
+      ) : (
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-h1 text-ink">Heb je betaald?</h1>
+            <p className="text-lead text-muted-foreground">
+              Op {datumLang(info.vervaldatum)} moest je{" "}
+              <span className="tabular font-medium text-ink">{euro(info.bedragCenten)}</span> betalen aan{" "}
+              {info.schuldeiser}.
+            </p>
+          </div>
+          <BevestigKnop token={token} knopTekst={`Ja, ik heb ${euro(info.bedragCenten)} betaald`} />
+          <Link
+            href={`/betaald/${token}?antwoord=nee`}
+            className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft"
+          >
+            Nee, nog niet
+          </Link>
+        </section>
+      )}
+    </Pagina>
   )
 }
 
 function NogNietBetaald({ token, schuldeiser, bedrag }: { token: string; schuldeiser: string; bedrag: number }) {
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 rounded-lg bg-peach-soft p-6">
+      <Kaart as="div">
         <h1 className="text-h2 text-ink">Dat kan gebeuren</h1>
         <p className="text-base text-ink">
           Het is goed dat je het laat weten. Dit kun je nu doen:
@@ -89,10 +87,10 @@ function NogNietBetaald({ token, schuldeiser, bedrag }: { token: string; schulde
         <p className="text-sm text-muted-foreground">
           Kom je er niet uit? Het Juridisch Loket helpt gratis, via juridischloket.nl of 0900 8020.
         </p>
-      </div>
+      </Kaart>
       <Link
         href={`/betaald/${token}?antwoord=ja`}
-        className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong"
+        className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft"
       >
         Toch al betaald? Geef het hier door
       </Link>
@@ -102,13 +100,13 @@ function NogNietBetaald({ token, schuldeiser, bedrag }: { token: string; schulde
 
 function AlBetaald() {
   return (
-    <section className="flex flex-col gap-3 rounded-lg bg-mint-soft p-6">
+    <Kaart className="gap-3">
       <h1 className="text-h2 text-ink">Deze betaling staat al op betaald</h1>
       <p className="text-base text-ink">Je hoeft niets meer te doen.</p>
-      <Link href="/mijn-plan" className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong">
+      <Link href="/mijn-plan" className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft">
         Naar Mijn plan
       </Link>
-    </section>
+    </Kaart>
   )
 }
 
@@ -119,12 +117,12 @@ function LinkWerktNiet({ reden }: { reden: "onbekend" | "gebruikt" | "verlopen" 
     onbekend: "Deze link werkt niet. Je kunt je betaling ook op Mijn plan doorgeven.",
   }[reden]
   return (
-    <section className="flex flex-col gap-3 rounded-lg bg-lilac-soft p-6">
+    <Kaart className="gap-3">
       <h1 className="text-h2 text-ink">Deze link werkt niet meer</h1>
       <p className="text-base text-ink">{tekst}</p>
-      <Link href="/mijn-plan" className="self-start text-sm text-violet underline underline-offset-4 hover:text-violet-strong">
+      <Link href="/mijn-plan" className="self-start text-sm text-ink underline underline-offset-4 hover:text-ink-soft">
         Naar Mijn plan
       </Link>
-    </section>
+    </Kaart>
   )
 }

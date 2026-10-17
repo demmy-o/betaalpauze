@@ -1,9 +1,9 @@
 import { notFound, redirect } from "next/navigation"
-import Image from "next/image"
 import { createClient } from "@/lib/supabase/server"
 import { haalZaak } from "@/lib/zaak"
 import { mailBeta } from "@/lib/verstuur"
 import { BriefBekijken } from "./BriefBekijken"
+import { Pagina } from "@/components/ui/pagina"
 
 export const metadata = { title: "Je brief · Betaalpauze.nl" }
 
@@ -25,17 +25,14 @@ export default async function BriefPagina({ params }: { params: Promise<{ zaakId
   if (route === "email" && !zaak.schuldeiserEmail) redirect("/aanvragen?stap=1")
 
   return (
-    <main className="min-h-screen bg-canvas px-5 py-8 md:px-8 md:py-12">
-      <div className="mx-auto flex max-w-prose flex-col gap-8">
-        <Image src="/logo-betaalpauze.svg" alt="betaalpauze.nl" width={152} height={40} priority />
-        <BriefBekijken
-          zaakId={zaak.id}
-          route={route}
-          beta={mailBeta()}
-          schuldeiserEmail={zaak.schuldeiserEmail ?? ""}
-          gegevens={{ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt, route }}
-        />
-      </div>
-    </main>
+    <Pagina kolom="stap">
+      <BriefBekijken
+        zaakId={zaak.id}
+        route={route}
+        beta={mailBeta()}
+        schuldeiserEmail={zaak.schuldeiserEmail ?? ""}
+        gegevens={{ ...zaak.brief, plan: zaak.plan, datum: zaak.plan.aangemaakt, route }}
+      />
+    </Pagina>
   )
 }

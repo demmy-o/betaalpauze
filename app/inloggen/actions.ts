@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { magMailen } from "@/lib/mail"
+import { naInloggen } from "@/lib/inloggen"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -56,7 +57,8 @@ export async function controleerCode(
     return { status: "fout", email, melding: "Deze code klopt niet of is verlopen. Vraag een nieuwe code aan." }
   }
 
-  redirect("/mijn-plan")
+  // Terug naar waar je was (bijvoorbeeld je stap in de aanvraag), anders naar Mijn plan.
+  redirect(naInloggen(String(formData.get("terug") ?? "")))
 }
 
 export async function uitloggen() {

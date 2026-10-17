@@ -1,4 +1,5 @@
 import { Menu } from "../components/Menu"
+import { buttonVariants } from "@/components/ui/button"
 import { PartnerFormulier } from "./PartnerFormulier"
 
 export const metadata = {
@@ -45,7 +46,7 @@ export default function PartnersPagina() {
 
       <main className="flex-1">
         {/* HERO */}
-        <section className="band bg-lilac">
+        <section className="band bg-mint">
           <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
             <div className="flex max-w-prose flex-col gap-6">
               <h1 className="text-display tracking-display text-ink">Betaalproblemen oplossen voordat incasso nodig is</h1>
@@ -55,7 +56,7 @@ export default function PartnersPagina() {
               </p>
               <a
                 href="#pilot"
-                className="flex h-12 w-full items-center justify-center rounded-full bg-ink px-6 text-base font-medium text-white hover:bg-ink-soft sm:w-auto sm:self-start"
+                className={buttonVariants({ variant: "primair", size: "groot", className: "w-full md:w-auto md:self-start" })}
               >
                 Een pilot bespreken
               </a>
@@ -64,7 +65,7 @@ export default function PartnersPagina() {
         </section>
 
         {/* BLOK 1: WAT ER VERANDERT */}
-        <Band kleur="bg-peach">
+        <Band kleur="bg-geel-tint">
           <h2 className="text-h2 text-ink">Een gemiste betaling begint meestal klein</h2>
           <p className="text-lead text-ink">
             Een onverwachte rekening. Een maand waarin het net niet rondkomt. Wie dan een betaling mist, stelt contact
@@ -77,7 +78,7 @@ export default function PartnersPagina() {
         </Band>
 
         {/* BLOK 2: WAT WE ZAGEN */}
-        <Band kleur="bg-sky">
+        <Band kleur="bg-grijs-soft">
           <h2 className="text-h2 text-ink">De regeling bestaat al. De klant komt er alleen niet altijd</h2>
           <p className="text-lead text-ink">
             We keken in oktober 2026 bij vijftien grote schuldeisers hoe je een betalingsregeling aanvraagt. Bijna
@@ -105,7 +106,7 @@ export default function PartnersPagina() {
         </Band>
 
         {/* BLOK 4: WAT HET OPLEVERT */}
-        <Band kleur="bg-mint">
+        <Band kleur="bg-groen-tint">
           <h2 className="text-h2 text-ink">Wat je eraan hebt</h2>
           <Lijst
             items={[
@@ -140,7 +141,7 @@ export default function PartnersPagina() {
               <li key={i} className="flex gap-4 text-lead text-ink">
                 <span
                   aria-hidden
-                  className="tabular flex size-9 shrink-0 items-center justify-center rounded-full bg-lilac text-base font-medium"
+                  className="tabular flex size-9 shrink-0 items-center justify-center rounded-full bg-mint text-base font-medium"
                 >
                   {i + 1}
                 </span>
@@ -165,7 +166,7 @@ export default function PartnersPagina() {
         </section>
 
         {/* FORMULIER */}
-        <section id="pilot" className="band scroll-mt-4 bg-blush">
+        <section id="pilot" className="band scroll-mt-4 bg-rood-tint">
           <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
             <div className="flex max-w-form flex-col gap-6 rounded-lg bg-surface p-6 md:p-8">
               <div className="flex flex-col gap-2">

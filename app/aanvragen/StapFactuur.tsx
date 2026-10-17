@@ -1,7 +1,9 @@
 "use client"
 
 import { factuurSchema, type Factuur } from "./schema"
-import { FoutSamenvatting, StapKop, Veld, VerderKnop, useStapFormulier } from "./onderdelen"
+import { FoutSamenvatting, Stap, Veld, StapKnoppen, useStapFormulier } from "./onderdelen"
+import { Button } from "@/components/ui/button"
+import { Veldengroep } from "@/components/ui/veldengroep"
 
 // Stap 2: over welke factuur gaat het?
 export function StapFactuur({ begin, onVerder }: { begin?: Factuur; onVerder: (f: Factuur) => void }) {
@@ -21,54 +23,63 @@ export function StapFactuur({ begin, onVerder }: { begin?: Factuur; onVerder: (f
 
   return (
     <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
-      <StapKop stap={2} titel="Over welke factuur gaat het?" uitleg="Pak je factuur erbij. Alles staat meestal bovenaan." />
+      <Stap stap={2} titel="Over welke factuur gaat het?" uitleg="Pak je factuur erbij. Alles staat meestal bovenaan.">
+        <FoutSamenvatting fouten={formulier.samenvatting} />
 
-      <FoutSamenvatting fouten={formulier.samenvatting} />
+        <Veldengroep>
+          <Veld
+            id="factuurnummer"
+            label="Factuurnummer"
+            voorbeeld="2026-00451"
+            autoComplete="off"
+            waarde={waarden.factuurnummer}
+            fout={fouten.factuurnummer}
+            onWaarde={(w) => zet("factuurnummer", w)}
+            onVerlaten={() => verlaten("factuurnummer")}
+          />
+          <Veld
+            id="factuurdatum"
+            label="Datum van de factuur"
+            type="date"
+            waarde={waarden.factuurdatum}
+            fout={fouten.factuurdatum}
+            onWaarde={(w) => zet("factuurdatum", w)}
+            onVerlaten={() => verlaten("factuurdatum")}
+          />
+          <Veld
+            id="bedrag"
+            label="Bedrag in euro"
+            inputMode="decimal"
+            autoComplete="off"
+            voorbeeld="248,50"
+            waarde={waarden.bedrag}
+            fout={fouten.bedrag}
+            onWaarde={(w) => zet("bedrag", w)}
+            onVerlaten={() => verlaten("bedrag")}
+          />
+          <Veld
+            id="klantnummer"
+            label="Klantnummer"
+            voorbeeld="1234567"
+            optioneel
+            autoComplete="off"
+            waarde={waarden.klantnummer}
+            fout={fouten.klantnummer}
+            onWaarde={(w) => zet("klantnummer", w)}
+            onVerlaten={() => verlaten("klantnummer")}
+          />
+        </Veldengroep>
 
-      <div className="flex flex-col gap-6">
-        <Veld
-          id="factuurnummer"
-          label="Factuurnummer"
-          autoComplete="off"
-          waarde={waarden.factuurnummer}
-          fout={fouten.factuurnummer}
-          onWaarde={(w) => zet("factuurnummer", w)}
-          onVerlaten={() => verlaten("factuurnummer")}
-        />
-        <Veld
-          id="factuurdatum"
-          label="Datum van de factuur"
-          type="date"
-          waarde={waarden.factuurdatum}
-          fout={fouten.factuurdatum}
-          onWaarde={(w) => zet("factuurdatum", w)}
-          onVerlaten={() => verlaten("factuurdatum")}
-        />
-        <Veld
-          id="bedrag"
-          label="Bedrag in euro"
-          hulp="Het totaalbedrag dat je moet betalen."
-          inputMode="decimal"
-          autoComplete="off"
-          placeholder="248,50"
-          waarde={waarden.bedrag}
-          fout={fouten.bedrag}
-          onWaarde={(w) => zet("bedrag", w)}
-          onVerlaten={() => verlaten("bedrag")}
-        />
-        <Veld
-          id="klantnummer"
-          label="Klantnummer"
-          optioneel
-          autoComplete="off"
-          waarde={waarden.klantnummer}
-          fout={fouten.klantnummer}
-          onWaarde={(w) => zet("klantnummer", w)}
-          onVerlaten={() => verlaten("klantnummer")}
-        />
-      </div>
+        <StapKnoppen>
 
-      <VerderKnop>Verder naar je gegevens</VerderKnop>
+          <Button type="submit" variant="primair" size="groot">
+
+            Verder naar je gegevens
+
+          </Button>
+
+        </StapKnoppen>
+      </Stap>
     </form>
   )
 }

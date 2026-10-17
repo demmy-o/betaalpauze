@@ -5,11 +5,14 @@ import { stuurCode, controleerCode, type CodeResult } from "./actions"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Foutmelding } from "@/components/ui/foutmelding"
+import { Veldengroep } from "@/components/ui/veldengroep"
 
 const beginStand: CodeResult = { status: "idle" }
 
 // Stap 1: e-mailadres. Stap 2: de code van 6 cijfers uit de mail.
-export function InlogFormulier() {
+// terug: waar je na het inloggen heen gaat, bijvoorbeeld de stap in de aanvraag waar je was.
+export function InlogFormulier({ terug }: { terug?: string }) {
   const [mailStand, vraagCode, bezigMetMail] = useActionState(stuurCode, beginStand)
   const [codeStand, checkCode, bezigMetCode] = useActionState(controleerCode, beginStand)
 
@@ -20,6 +23,7 @@ export function InlogFormulier() {
         fout={codeStand.status === "fout" ? codeStand.melding : undefined}
         actie={checkCode}
         bezig={bezigMetCode}
+        terug={terug}
       />
     )
   }
@@ -30,13 +34,10 @@ export function InlogFormulier() {
 
   return (
     <form action={vraagCode} className="flex flex-col gap-6" noValidate>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="email" className="text-sm font-medium text-ink">
+      <Veldengroep>
+        <Label htmlFor="email">
           E-mailadres
         </Label>
-        <p id="email-hulp" className="text-sm text-muted-foreground">
-          We sturen een code van 6 cijfers naar dit adres.
-        </p>
         <Input
           id="email"
           name="email"
@@ -45,22 +46,23 @@ export function InlogFormulier() {
           key={ingevuld ?? ""}
           defaultValue={ingevuld}
           required
-          placeholder="naam@voorbeeld.nl"
+          voorbeeld="naam@voorbeeld.nl"
           aria-invalid={fout ? true : undefined}
-          aria-describedby={fout ? "email-hulp email-fout" : "email-hulp"}
-          className="h-12 rounded-md border-line-strong bg-surface px-4 focus-visible:border-line-strong focus-visible:ring-0 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet text-base text-ink placeholder:text-subtle"
+          aria-describedby={fout ? "email-fout" : undefined}
         />
         {fout && (
-          <p id="email-fout" className="text-sm text-error">
+          <Foutmelding id="email-fout">
             {fout}
-          </p>
+          </Foutmelding>
         )}
-      </div>
+      </Veldengroep>
 
       <Button
         type="submit"
         disabled={bezigMetMail}
-        className="h-12 w-full rounded-full bg-ink px-6 text-base font-medium text-white hover:bg-ink-soft sm:w-auto sm:self-start"
+        variant="primair"
+        size="groot"
+        className="w-full md:w-auto md:self-start"
       >
         {bezigMetMail ? "Code wordt verstuurd..." : "Stuur mij een code"}
       </Button>
@@ -73,23 +75,28 @@ function CodeStap({
   fout,
   actie,
   bezig,
+  terug,
 }: {
   email: string
   fout?: string
   actie: (formData: FormData) => void
   bezig: boolean
+  terug?: string
 }) {
   return (
     <form action={actie} className="flex flex-col gap-6" noValidate>
       <input type="hidden" name="email" value={email} />
+      <input type="hidden" name="terug" value={terug ?? ""} />
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="code" className="text-sm font-medium text-ink">
+      <p>
+        We hebben een code van 6 cijfers gestuurd naar <span className="font-medium text-ink">{email}</span>. Zie je geen
+        mail? Kijk ook in je spammap.
+      </p>
+
+      <Veldengroep>
+        <Label htmlFor="code">
           Code uit je mail
         </Label>
-        <p id="code-hulp" className="text-sm text-muted-foreground">
-          We hebben een code van 6 cijfers gestuurd naar {email}. Check ook je spammap.
-        </p>
         <Input
           id="code"
           name="code"
@@ -99,26 +106,32 @@ function CodeStap({
           required
           autoFocus
           aria-invalid={fout ? true : undefined}
-          aria-describedby={fout ? "code-hulp code-fout" : "code-hulp"}
-          className="tabular h-12 rounded-md border-line-strong bg-surface px-4 focus-visible:border-line-strong focus-visible:ring-0 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet text-lg tracking-[0.3em] text-ink"
+          voorbeeld="123456"
+          aria-describedby={fout ? "code-fout" : undefined}
+          className="tabular text-lg tracking-[0.3em]"
         />
         {fout && (
-          <p id="code-fout" className="text-sm text-error">
+          <Foutmelding id="code-fout">
             {fout}
-          </p>
+          </Foutmelding>
         )}
-      </div>
+      </Veldengroep>
 
       <Button
         type="submit"
         disabled={bezig}
-        className="h-12 w-full rounded-full bg-ink px-6 text-base font-medium text-white hover:bg-ink-soft sm:w-auto sm:self-start"
+        variant="primair"
+        size="groot"
+        className="w-full md:w-auto md:self-start"
       >
         {bezig ? "Bezig met controleren..." : "Inloggen"}
       </Button>
 
       {/* Laadt de pagina opnieuw, zodat je terug bent bij stap 1 */}
-      <a href="/inloggen" className="text-sm text-violet underline underline-offset-4 hover:text-violet-strong">
+      <a
+        href={terug ? `/inloggen?terug=${encodeURIComponent(terug)}` : "/inloggen"}
+        className="text-sm text-ink underline underline-offset-4 hover:text-ink-soft"
+      >
         Nieuwe code aanvragen of ander adres gebruiken
       </a>
     </form>
