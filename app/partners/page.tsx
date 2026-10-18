@@ -1,6 +1,8 @@
 import { Menu } from "../components/Menu"
 import { buttonVariants } from "@/components/ui/button"
+import { Beeldsectie } from "@/components/ui/beeldsectie"
 import { PartnerFormulier } from "./PartnerFormulier"
+import { PauseIllustration } from "../components/PauseIllustration"
 
 export const metadata = {
   title: "Voor schuldeisers · Betaalpauze.nl",
@@ -9,23 +11,15 @@ export const metadata = {
 }
 
 // Partnerpagina voor schuldeisers (ticket 15). Teksten van Demmy, niet aanpassen.
-// Opbouw volgens docs/design.md: brede pastelbanden, één boodschap per blok, formulier onderaan.
-
-function Band({ kleur, children }: { kleur: string; children: React.ReactNode }) {
-  return (
-    <section className={`band ${kleur}`}>
-      <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
-        <div className="flex max-w-prose flex-col gap-5">{children}</div>
-      </div>
-    </section>
-  )
-}
+// Opbouw: tekst op de neutrale achtergrond, met naast elk blok een kleurvlak voor een illustratie (Beeldsectie).
+// Het vlak wisselt per blok van kant, naast elkaar liggende blokken hebben een andere kleur.
+// Onderaan het formulier over de volle breedte.
 
 function Lijst({ items }: { items: string[] }) {
   return (
     <ul className="flex flex-col gap-3">
       {items.map((item) => (
-        <li key={item} className="flex gap-3 text-lead text-ink">
+        <li key={item} className="flex gap-3 text-lead">
           <span aria-hidden className="mt-3 size-1.5 shrink-0 rounded-full bg-ink" />
           <span>{item}</span>
         </li>
@@ -36,58 +30,54 @@ function Lijst({ items }: { items: string[] }) {
 
 export default function PartnersPagina() {
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
-      <Menu actief="schuldeisers" knop={{ tekst: "Een pilot bespreken", href: "#pilot" }} />
+    <div className="flex min-h-screen flex-col bg-canvas">
+      <Menu actief="schuldeisers" />
 
       <main className="flex-1">
         {/* HERO */}
-        <section className="band bg-mint">
-          <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
-            <div className="flex max-w-prose flex-col gap-6">
-              <h1 className="text-display tracking-display text-ink">Betaalproblemen oplossen voordat incasso nodig is</h1>
-              <p className="text-lead text-ink">
-                Betaalpauze helpt klanten met een betaalachterstand om zelf een voorstel te doen. Op tijd en met een
-                plan dat ze kunnen volhouden. We zoeken schuldeisers die dit samen met ons willen testen.
-              </p>
-              <a
-                href="#pilot"
-                className={buttonVariants({ variant: "primair", size: "groot", className: "w-full md:w-auto md:self-start" })}
-              >
-                Een pilot bespreken
-              </a>
-            </div>
-          </div>
-        </section>
+        <Beeldsectie kleur="bg-mint" beeld={<PauseIllustration achtergrond={false} />}>
+          <h1 className="font-display text-display text-ink">Betaalproblemen oplossen voordat incasso nodig is</h1>
+          <p className="text-lead">
+            Betaalpauze helpt klanten met een betaalachterstand om zelf een voorstel te doen. Op tijd en met een plan
+            dat ze kunnen volhouden. We zoeken schuldeisers die dit samen met ons willen testen.
+          </p>
+          <a
+            href="#pilot"
+            className={buttonVariants({ variant: "primair", size: "groot", className: "w-full md:w-auto md:self-start" })}
+          >
+            Een pilot bespreken
+          </a>
+        </Beeldsectie>
 
         {/* BLOK 1: WAT ER VERANDERT */}
-        <Band kleur="bg-geel-tint">
+        <Beeldsectie kleur="bg-geel-soft" beeldKant="links">
           <h2 className="text-h2 text-ink">Een gemiste betaling begint meestal klein</h2>
-          <p className="text-lead text-ink">
+          <p className="text-lead">
             Een onverwachte rekening. Een maand waarin het net niet rondkomt. Wie dan een betaling mist, stelt contact
             vaak uit. Uit schaamte, of omdat regelen moeite kost.
           </p>
-          <p className="text-lead text-ink">
+          <p className="text-lead">
             Ondertussen loopt de achterstand op en komen er kosten bij. Hoe later het eerste contact, hoe moeilijker het
             wordt om er samen uit te komen.
           </p>
-        </Band>
+        </Beeldsectie>
 
         {/* BLOK 2: WAT WE ZAGEN */}
-        <Band kleur="bg-grijs-soft">
+        <Beeldsectie kleur="bg-grijs-soft">
           <h2 className="text-h2 text-ink">De regeling bestaat al. De klant komt er alleen niet altijd</h2>
-          <p className="text-lead text-ink">
+          <p className="text-lead">
             We keken in oktober 2026 bij vijftien grote schuldeisers hoe je een betalingsregeling aanvraagt. Bijna
             allemaal doen ze dat via een eigen online omgeving of de telefoon. Vaak met voorwaarden, zoals een minimaal
             bedrag per maand of een automatische incasso.
           </p>
-          <p className="text-lead text-ink">
+          <p className="text-lead">
             Voor veel klanten werkt dat goed. Wij denken dat juist de klanten die het moeilijk hebben, die stap niet
             zetten. Dat willen we samen met jou testen.
           </p>
-        </Band>
+        </Beeldsectie>
 
         {/* BLOK 3: WAT BETAALPAUZE DOET */}
-        <Band kleur="bg-surface">
+        <Beeldsectie kleur="bg-groen-soft" beeldKant="links">
           <h2 className="text-h2 text-ink">Een voorstel van de klant, in een vorm die jij kunt verwerken</h2>
           <Lijst
             items={[
@@ -98,10 +88,10 @@ export default function PartnersPagina() {
               "Er gaat geen geld via Betaalpauze. De klant betaalt rechtstreeks aan jou.",
             ]}
           />
-        </Band>
+        </Beeldsectie>
 
         {/* BLOK 4: WAT HET OPLEVERT */}
-        <Band kleur="bg-groen-tint">
+        <Beeldsectie kleur="bg-mint-soft">
           <h2 className="text-h2 text-ink">Wat je eraan hebt</h2>
           <Lijst
             items={[
@@ -111,10 +101,10 @@ export default function PartnersPagina() {
               "Cijfers over hoe vaak klanten een voorstel doen en of ze het volhouden. Bruikbaar voor je rapportage over sociaal incasseren.",
             ]}
           />
-        </Band>
+        </Beeldsectie>
 
         {/* BLOK 5: HOE EEN PILOT WERKT */}
-        <Band kleur="bg-surface">
+        <Beeldsectie kleur="bg-geel-soft" beeldKant="links">
           <h2 className="text-h2 text-ink">Zo werkt een pilot</h2>
           <ol className="flex flex-col gap-4">
             {[
@@ -132,10 +122,10 @@ export default function PartnersPagina() {
                 <span className="font-medium">Samen evalueren</span>, en beslissen of en hoe we verder gaan.
               </>,
             ].map((stap, i) => (
-              <li key={i} className="flex gap-4 text-lead text-ink">
+              <li key={i} className="flex gap-4 text-lead">
                 <span
                   aria-hidden
-                  className="tabular flex size-9 shrink-0 items-center justify-center rounded-full bg-mint text-base font-medium"
+                  className="tabular flex size-9 shrink-0 items-center justify-center rounded-full bg-mint font-sans text-base font-medium text-ink"
                 >
                   {i + 1}
                 </span>
@@ -146,28 +136,15 @@ export default function PartnersPagina() {
           <p className="text-base text-muted-foreground">
             Tijdens de pilot betaal je niets. Daarna spreken we samen een prijs per opgeloste zaak af.
           </p>
-        </Band>
+        </Beeldsectie>
 
-        {/* OVER MIJ */}
-        <section className="bg-surface pb-14 lg:pb-24">
+        {/* FORMULIER: over de volle breedte. Op desktop de uitleg links en de velden rechts. */}
+        <section id="pilot" className="scroll-mt-4 py-12 lg:py-16">
           <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
-            <p className="max-w-prose border-t border-line pt-8 text-base text-muted-foreground">
-              Ik ben Demmy Onink, product- en gedragsontwerper. Ik werk al ruim twintig jaar aan digitale producten,
-              vooral voor financiële dienstverleners. Betaalpauze bouw ik omdat ik zie dat goede regelingen vaak niet
-              aankomen bij de mensen die ze nodig hebben.
-            </p>
-          </div>
-        </section>
-
-        {/* FORMULIER */}
-        <section id="pilot" className="band scroll-mt-4 bg-rood-tint">
-          <div className="mx-auto max-w-page px-5 md:px-8 lg:px-12">
-            <div className="flex max-w-form flex-col gap-6 rounded-lg bg-surface p-6 md:p-8">
+            <div className="grid gap-8 rounded-lg bg-surface p-6 md:p-10 lg:grid-cols-2 lg:gap-16 lg:p-12">
               <div className="flex flex-col gap-2">
                 <h2 className="text-h2 text-ink">Een pilot bespreken</h2>
-                <p className="text-base text-muted-foreground">
-                  Laat je gegevens achter. Ik neem binnen twee werkdagen contact met je op.
-                </p>
+                <p className="text-lead">Laat je gegevens achter. Ik neem binnen twee werkdagen contact met je op.</p>
               </div>
               <PartnerFormulier />
             </div>
@@ -175,8 +152,32 @@ export default function PartnersPagina() {
         </section>
       </main>
 
-      <footer className="bg-ink px-5 py-8 text-sm text-white md:px-8 lg:px-12">
-        <div className="mx-auto max-w-page">betaalpauze.nl</div>
+      {/* FOOTER: over mij en contact, op ink. */}
+      <footer className="bg-ink py-12 lg:py-16">
+        <div className="mx-auto grid max-w-page gap-10 px-5 md:px-8 lg:grid-cols-2 lg:gap-16 lg:px-12">
+          <div className="flex max-w-prose flex-col gap-3">
+            <p className="font-sans text-sm font-medium text-white">Over mij</p>
+            <p className="text-base text-grijs-soft">
+              Ik ben Demmy Onink, product- en gedragsontwerper. Ik werk al ruim twintig jaar aan digitale producten,
+              vooral voor financiële dienstverleners. Betaalpauze bouw ik omdat ik zie dat goede regelingen vaak niet
+              aankomen bij de mensen die ze nodig hebben.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className="font-sans text-sm font-medium text-white">Contact</p>
+            <a
+              href="https://www.linkedin.com/in/demmy/"
+              target="_blank"
+              rel="noreferrer"
+              className="self-start text-base text-white underline underline-offset-4 hover:text-grijs-soft"
+            >
+              Demmy Onink op LinkedIn
+            </a>
+          </div>
+        </div>
+        <div className="mx-auto mt-12 max-w-page px-5 md:px-8 lg:px-12">
+          <p className="border-t border-leisteen pt-6 font-sans text-sm text-grijs-soft">betaalpauze.nl</p>
+        </div>
       </footer>
     </div>
   )
