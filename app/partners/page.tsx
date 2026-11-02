@@ -3,6 +3,13 @@ import { buttonVariants } from "@/components/ui/button"
 import { Beeldsectie } from "@/components/ui/beeldsectie"
 import { PartnerFormulier } from "./PartnerFormulier"
 import { PauseIllustration } from "../components/PauseIllustration"
+import {
+  GemisteBetalingIllustration,
+  PilotStappenIllustration,
+  RegelingBestaatAlIllustration,
+  VoorstelBriefIllustration,
+  WatJeEraanHebtIllustration,
+} from "../components/PartnerIllustraties"
 
 export const metadata = {
   title: "Voor schuldeisers · Betaalpauze.nl",
@@ -50,7 +57,7 @@ export default function PartnersPagina() {
         </Beeldsectie>
 
         {/* BLOK 1: WAT ER VERANDERT */}
-        <Beeldsectie kleur="bg-geel-soft" beeldKant="links">
+        <Beeldsectie kleur="bg-geel-soft" beeldKant="links" beeld={<GemisteBetalingIllustration />}>
           <h2 className="text-h2 text-ink">Een gemiste betaling begint meestal klein</h2>
           <p className="text-lead">
             Een onverwachte rekening. Een maand waarin het net niet rondkomt. Wie dan een betaling mist, stelt contact
@@ -63,7 +70,7 @@ export default function PartnersPagina() {
         </Beeldsectie>
 
         {/* BLOK 2: WAT WE ZAGEN */}
-        <Beeldsectie kleur="bg-grijs-soft">
+        <Beeldsectie kleur="bg-grijs-soft" beeld={<RegelingBestaatAlIllustration />}>
           <h2 className="text-h2 text-ink">De regeling bestaat al. De klant komt er alleen niet altijd</h2>
           <p className="text-lead">
             We keken in oktober 2026 bij vijftien grote schuldeisers hoe je een betalingsregeling aanvraagt. Bijna
@@ -77,7 +84,7 @@ export default function PartnersPagina() {
         </Beeldsectie>
 
         {/* BLOK 3: WAT BETAALPAUZE DOET */}
-        <Beeldsectie kleur="bg-groen-soft" beeldKant="links">
+        <Beeldsectie kleur="bg-groen-soft" beeldKant="links" beeld={<VoorstelBriefIllustration />}>
           <h2 className="text-h2 text-ink">Een voorstel van de klant, in een vorm die jij kunt verwerken</h2>
           <Lijst
             items={[
@@ -91,7 +98,7 @@ export default function PartnersPagina() {
         </Beeldsectie>
 
         {/* BLOK 4: WAT HET OPLEVERT */}
-        <Beeldsectie kleur="bg-mint-soft">
+        <Beeldsectie kleur="bg-mint-soft" beeld={<WatJeEraanHebtIllustration />}>
           <h2 className="text-h2 text-ink">Wat je eraan hebt</h2>
           <Lijst
             items={[
@@ -104,7 +111,7 @@ export default function PartnersPagina() {
         </Beeldsectie>
 
         {/* BLOK 5: HOE EEN PILOT WERKT */}
-        <Beeldsectie kleur="bg-geel-soft" beeldKant="links">
+        <Beeldsectie kleur="bg-geel-soft" beeldKant="links" beeld={<PilotStappenIllustration />}>
           <h2 className="text-h2 text-ink">Zo werkt een pilot</h2>
           <ol className="flex flex-col gap-4">
             {[
