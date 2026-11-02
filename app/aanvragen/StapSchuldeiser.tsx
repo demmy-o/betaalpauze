@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { ChevronDownIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { adresCompleet, korteNaam, type GevondenBedrijf, type RegelingVia } from "@/lib/regeling"
 import { schuldeiserSchema, type Schuldeiser } from "./schema"
-import { FoutSamenvatting, Stap, Veld, StapKnoppen, useStapFormulier } from "./onderdelen"
+import { FoutSamenvatting, Stap, StapKnoppen, useStapFormulier } from "./onderdelen"
 import { Foutmelding } from "@/components/ui/foutmelding"
 import { Kaart } from "@/components/ui/kaart"
 import { Veldengroep } from "@/components/ui/veldengroep"
@@ -28,6 +30,7 @@ function useSchuldeiserFormulier(begin?: Schuldeiser) {
     regelingUrl: begin?.regelingUrl ?? "",
     regelingTelefoon: begin?.regelingTelefoon ?? "",
     regelingOpmerking: begin?.regelingOpmerking ?? "",
+    emailBekend: begin?.emailBekend ?? "",
     route: begin?.route ?? "",
     email: begin?.email ?? "",
     postAdresAnders: begin?.postAdresAnders ?? "",
@@ -37,11 +40,12 @@ function useSchuldeiserFormulier(begin?: Schuldeiser) {
   })
 }
 
-// Stap 1: bij welk bedrijf staat de rekening open, en hoe gaat de brief daarheen?
-// Drie routes:
-//   1. e-mailadres bekend (of ingevuld): we mailen de brief
-//   2. geen e-mailadres: Betaalpauze stuurt de brief per post
-//   3. het bedrijf heeft een eigen portaal: eerlijke melding met de link, of toch per post
+// Bij welk bedrijf staat de rekening open? Alleen het bedrijf kiezen, verder niets.
+// Hoe de brief er komt, volgt vanzelf:
+//   - e-mailadres bekend: we mailen de brief
+//   - eigen omgeving (portaal, formulier of telefoon): per post, met onder de knop een linkje
+//     "Bij [bedrijf] zelf regelen" dat uitklapt met de link of het telefoonnummer
+//   - anders: het volgende scherm vraagt naar het e-mailadres (zie StapBedrijfBrief)
 export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVerder: (s: Schuldeiser) => void }) {
   const formulier = useSchuldeiserFormulier(begin)
   const { waarden, fouten, zet } = formulier
@@ -55,9 +59,9 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
     zet("regelingTelefoon", b.regeling?.telefoon ?? "")
     zet("regelingOpmerking", b.regeling?.opmerking ?? "")
     if (b.email) zet("email", b.email)
-    // Beginroute: mailen als dat kan. Bij een portaal kiest de gebruiker zelf.
-    const via = b.regeling?.via
-    zet("route", via && via !== "email" ? "" : "email")
+    zet("emailBekend", b.email ? "ja" : "")
+    // Route: mailen als we het adres weten. Bij een eigen omgeving: per post. Anders vragen we het straks.
+    zet("route", b.email ? "email" : heeftEigenOmgeving(b.regeling?.via ?? "") ? "post" : "")
   }
 
   async function kies(b: GevondenBedrijf) {
@@ -106,7 +110,7 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
 
   function kiesOpnieuw() {
     for (const veld of [
-      "schuldeiserId", "kvkNummer", "naam", "straat", "postcode", "plaats", "route", "email",
+      "schuldeiserId", "kvkNummer", "naam", "straat", "postcode", "plaats", "route", "email", "emailBekend",
       "postAdresAnders", "postStraat", "postPostcode", "postPlaats",
     ] as const) {
       zet(veld, "")
@@ -118,47 +122,46 @@ export function StapSchuldeiser({ begin, onVerder }: { begin?: Schuldeiser; onVe
 
   function verstuur(e: React.FormEvent) {
     e.preventDefault()
-    // Nog geen bedrijf gekozen? Dan staan de andere velden nog niet op het scherm.
-    const data = formulier.controleerAlles(gekozen ? undefined : ["kvkNummer"])
-    if (data && !adresLaden) onVerder(data)
+    if (adresLaden) return
+    // Bedrijf gekozen: door. De rest (e-mailadres of postadres) vragen de volgende schermen.
+    if (gekozen) onVerder(waarden as Schuldeiser)
+    // Nog niets gekozen: dan toont dit de melding "Kies een bedrijf uit de lijst."
+    else formulier.controleerAlles(["kvkNummer"])
   }
 
   return (
     <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
-      <Stap
-        stap={1}
-        titel="Bij welk bedrijf moet je betalen?"
-        uitleg="Zoek het bedrijf dat de factuur stuurde."
-      >
+      <Stap titel="Bij welk bedrijf moet je betalen?">
         <FoutSamenvatting fouten={formulier.samenvatting} />
 
         {gekozen ? (
-          <>
-            <GekozenBedrijf
-              naam={waarden.naam}
-              kvkNummer={waarden.kvkNummer}
-              straat={waarden.straat}
-              postcode={waarden.postcode}
-              plaats={waarden.plaats}
-              laden={adresLaden}
-              fout={adresFout}
-              onOpnieuw={kiesOpnieuw}
-            />
-            {!adresLaden && <RouteKeuze formulier={formulier} />}
-          </>
+          <GekozenBedrijf
+            naam={waarden.naam}
+            kvkNummer={waarden.kvkNummer}
+            straat={waarden.straat}
+            postcode={waarden.postcode}
+            plaats={waarden.plaats}
+            laden={adresLaden}
+            fout={adresFout}
+            onOpnieuw={kiesOpnieuw}
+            // Per post en het adres is bekend: je kunt ook het adres van je factuur gebruiken.
+            anderAdres={
+              waarden.route === "post" && adresCompleet(waarden) && !adresLaden
+                ? { gekozen: waarden.postAdresAnders === "ja", onWissel: () => zet("postAdresAnders", waarden.postAdresAnders === "ja" ? "" : "ja") }
+                : undefined
+            }
+          />
         ) : (
           <BedrijfZoeken fout={fouten.kvkNummer} onKies={kies} />
         )}
 
         <StapKnoppen>
-
           <Button type="submit" variant="primair" size="groot" disabled={adresLaden}>
-
-            Verder naar de factuur
-
+            Verder
           </Button>
-
         </StapKnoppen>
+
+        {gekozen && !adresLaden && heeftEigenOmgeving(waarden.regelingVia) && <ZelfRegelen formulier={formulier} />}
       </Stap>
     </form>
   )
@@ -174,146 +177,73 @@ const PORTAAL_TEKST: Record<Exclude<RegelingVia, "email">, string> = {
   telefoon: "telefonisch",
 }
 
-function RouteKeuze({ formulier }: { formulier: Formulier }) {
-  const { waarden, fouten, zet, verlaten } = formulier
-  const via = waarden.regelingVia as RegelingVia | ""
+function heeftEigenOmgeving(via: string): via is Exclude<RegelingVia, "email"> {
+  return via === "portaal" || via === "formulier" || via === "telefoon"
+}
+
+// Onder de knop: het bedrijf regelt het liever zelf. Een linkje dat uitklapt met de link of het telefoonnummer.
+function ZelfRegelen({ formulier }: { formulier: Formulier }) {
+  const { waarden } = formulier
+  const [open, setOpen] = useState(false)
+  const rustig = useReducedMotion()
+  const via = waarden.regelingVia as Exclude<RegelingVia, "email">
   const naam = korteNaam(waarden.naam)
-  const heeftPortaal = via === "portaal" || via === "formulier" || via === "telefoon"
-  const adresBekend = adresCompleet(waarden)
-  // Het adres van de factuur gebruiken: als we geen volledig adres hebben, of als de gebruiker dat wil.
-  const eigenAdres = !adresBekend || waarden.postAdresAnders === "ja"
 
   return (
-    <div id="route" tabIndex={-1} className="flex flex-col gap-6 outline-none">
-      {/* Route 3: het bedrijf wil het in de eigen omgeving regelen */}
-      {heeftPortaal && (
-        <Kaart className="gap-3">
-          <h2 className="font-medium text-ink">
-            {naam} regelt betalingsregelingen {PORTAAL_TEKST[via]}
-          </h2>
-          <p className="text-sm text-ink">Daar is het meestal sneller geregeld dan met een brief.</p>
-          {waarden.regelingOpmerking && <p className="text-sm text-muted-foreground">{waarden.regelingOpmerking}</p>}
-          <div className="flex flex-wrap gap-3">
-            {waarden.regelingUrl && via !== "telefoon" && (
-              <a
-                href={waarden.regelingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonVariants({ variant: "primair", size: "middel" })}
-              >
-                Naar {naam}
-              </a>
-            )}
-            {waarden.regelingTelefoon && (
-              <a
-                href={`tel:${waarden.regelingTelefoon.replace(/\s/g, "")}`}
-                className={buttonVariants({ variant: "secundair", size: "middel" })}
-              >
-                Bel {waarden.regelingTelefoon}
-              </a>
-            )}
-          </div>
-          {waarden.route !== "post" && (
-            <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("route", "post")}>
-              Toch een brief sturen? Wij sturen hem per post.
-            </Button>
-          )}
-        </Kaart>
-      )}
+    <div className="flex flex-col items-center">
+      <Button
+        type="button"
+        variant="tertiair"
+        size="klein"
+        className="h-auto min-h-9 py-2 text-center whitespace-normal"
+        aria-expanded={open}
+        aria-controls="zelf-regelen"
+        onClick={() => setOpen(!open)}
+        icoonRechts={<ChevronDownIcon className={open ? "rotate-180 transition-transform" : "transition-transform"} />}
+      >
+        Bij {naam} zelf regelen
+      </Button>
 
-      {fouten.route && (
-        <Foutmelding id="route-fout">
-          {fouten.route}
-        </Foutmelding>
-      )}
-
-      {/* Route 1: per mail */}
-      {waarden.route === "email" && (
-        <Veldengroep>
-          <Veld
-            id="email"
-            label="E-mailadres van het bedrijf"
-            type="email"
-            inputMode="email"
-            autoComplete="off"
-            voorbeeld="klantenservice@bedrijf.nl"
-            waarde={waarden.email}
-            fout={fouten.email}
-            onWaarde={(w) => zet("email", w)}
-            onVerlaten={() => verlaten("email")}
-          />
-          <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("route", "post")}>
-            Geen e-mailadres? Wij sturen de brief per post.
-          </Button>
-        </Veldengroep>
-      )}
-
-      {/* Route 2: per post */}
-      {waarden.route === "post" && (
-        <Veldengroep>
-          <h2 className="font-medium text-ink">Wij sturen je brief per post</h2>
-          {adresBekend && !eigenAdres && (
-            <>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            id="zelf-regelen"
+            initial={rustig ? false : { height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={rustig ? undefined : { height: 0, opacity: 0 }}
+            transition={{ duration: 0.26, ease: [0.2, 0, 0, 1] }}
+            className="w-full overflow-hidden"
+          >
+            <div className="mt-4 flex flex-col gap-3 rounded-lg bg-surface p-5">
               <p className="text-sm text-ink">
-                Naar {waarden.naam}, {waarden.straat}, {waarden.postcode} {waarden.plaats}.
+                {naam} regelt betalingsregelingen ook {PORTAAL_TEKST[via]}. Daar is het soms sneller geregeld dan met
+                een brief.
               </p>
-              <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("postAdresAnders", "ja")}>
-                Staat er op je factuur een ander adres? Gebruik dan dat.
-              </Button>
-            </>
-          )}
-          {eigenAdres && (
-            <>
-              <p className="text-sm text-muted-foreground">
-                {adresBekend
-                  ? "Neem het postadres over van je factuur."
-                  : `We hebben het adres van ${naam} niet compleet. Neem het postadres over van je factuur.`}
-              </p>
-              <Veld
-                id="postStraat"
-                label="Straat en huisnummer, of postbus"
-                autoComplete="off"
-                voorbeeld="Postbus 123"
-                waarde={waarden.postStraat}
-                fout={fouten.postStraat}
-                onWaarde={(w) => zet("postStraat", w)}
-                onVerlaten={() => verlaten("postStraat")}
-              />
-              <Veld
-                id="postPostcode"
-                label="Postcode"
-                autoComplete="off"
-                voorbeeld="1234 AB"
-                waarde={waarden.postPostcode}
-                fout={fouten.postPostcode}
-                onWaarde={(w) => zet("postPostcode", w)}
-                onVerlaten={() => verlaten("postPostcode")}
-              />
-              <Veld
-                id="postPlaats"
-                label="Plaats"
-                voorbeeld="Leiden"
-                autoComplete="off"
-                waarde={waarden.postPlaats}
-                fout={fouten.postPlaats}
-                onWaarde={(w) => zet("postPlaats", w)}
-                onVerlaten={() => verlaten("postPlaats")}
-              />
-              {adresBekend && (
-                <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("postAdresAnders", "")}>
-                  Toch het bekende adres gebruiken: {waarden.straat}, {waarden.postcode} {waarden.plaats}
-                </Button>
-              )}
-            </>
-          )}
-          <p className="text-sm text-muted-foreground">Een brief per post is een paar dagen onderweg.</p>
-          {via !== "portaal" && via !== "formulier" && via !== "telefoon" && (
-            <Button type="button" variant="tertiair" size="klein" className="self-start" onClick={() => zet("route", "email")}>
-              Heb je toch een e-mailadres? Dan mailen we de brief.
-            </Button>
-          )}
-        </Veldengroep>
-      )}
+              {waarden.regelingOpmerking && <p className="text-sm text-muted-foreground">{waarden.regelingOpmerking}</p>}
+              <div className="flex flex-wrap gap-3">
+                {waarden.regelingUrl && via !== "telefoon" && (
+                  <a
+                    href={waarden.regelingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={buttonVariants({ variant: "secundair", size: "middel" })}
+                  >
+                    Naar {naam}
+                  </a>
+                )}
+                {waarden.regelingTelefoon && (
+                  <a
+                    href={`tel:${waarden.regelingTelefoon.replace(/\s/g, "")}`}
+                    className={buttonVariants({ variant: "secundair", size: "middel" })}
+                  >
+                    Bel {waarden.regelingTelefoon}
+                  </a>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -420,6 +350,7 @@ function GekozenBedrijf({
   laden,
   fout,
   onOpnieuw,
+  anderAdres,
 }: {
   naam: string
   kvkNummer?: string
@@ -429,9 +360,10 @@ function GekozenBedrijf({
   laden: boolean
   fout?: string
   onOpnieuw: () => void
+  anderAdres?: { gekozen: boolean; onWissel: () => void }
 }) {
   return (
-    <Kaart as="div" className="gap-3">
+    <Kaart as="div" breed={false} className="gap-3">
       <p className="text-sm text-muted-foreground">Gekozen bedrijf</p>
       <div className="flex flex-col gap-1" aria-live="polite">
         <p className="text-lg font-medium text-ink">{naam}</p>
@@ -450,15 +382,22 @@ function GekozenBedrijf({
         )}
         {fout && <p className="text-sm text-muted-foreground">{fout}</p>}
       </div>
-      <Button
-        type="button"
-        onClick={onOpnieuw}
-        variant="tertiair"
-        size="klein"
-        className="self-start"
-      >
-        Ander bedrijf kiezen
-      </Button>
+      <div className="flex flex-col items-start gap-1">
+        <Button type="button" onClick={onOpnieuw} variant="tertiair" size="klein">
+          Ander bedrijf kiezen
+        </Button>
+        {anderAdres && (
+          <Button
+            type="button"
+            onClick={anderAdres.onWissel}
+            variant="tertiair"
+            size="klein"
+            className="h-auto min-h-9 py-2 text-left whitespace-normal"
+          >
+            {anderAdres.gekozen ? "Toch dit adres gebruiken" : "Staat er een ander adres op je factuur?"}
+          </Button>
+        )}
+      </div>
     </Kaart>
   )
 }

@@ -10,7 +10,8 @@ const meta = {
     docs: {
       description: {
         component:
-          "Het invoerveld in Betaalpauze-stijl: 48px hoog, 12px hoeken, `line-strong` rand en een focusring in ink. " +
+          "Het invoerveld in Betaalpauze-stijl: 56px hoog, 12px hoeken, een grijs vlak (`canvas-donker`) zonder rand en een focusring in ink. " +
+          "Bij een fout krijgt het veld een rode rand. " +
           "Zet er altijd een **Label** boven. Geen hulptekst onder het label: geef met `voorbeeld` een hinttekst, " +
           "die in het veld staat als \"Bijvoorbeeld: …\". Nooit de hinttekst als vervanging van het label. " +
           "Vul bij bedragen, IBAN en e-mail altijd `inputMode` en `autoComplete` in. " +

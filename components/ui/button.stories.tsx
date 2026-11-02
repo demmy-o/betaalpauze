@@ -20,14 +20,14 @@ const meta = {
         component:
           "De knop. Drie niveaus en drie maten, zoals in de meeste design systems.\n\n" +
           "**Niveau**\n" +
-          "- **Primair**: gevuld in ink. De hoofdactie. Maximaal één per scherm. Geen hoverkleur: lichter worden leest als uitgeschakeld.\n" +
-          "- **Secundair**: rand in ink. Een tweede keuze naast de hoofdactie.\n" +
+          "- **Primair**: gevuld in groen, tekst in ink (wit op groen is te slecht leesbaar). De hoofdactie. Maximaal één per scherm. Geen hoverkleur: lichter worden leest als uitgeschakeld.\n" +
+          "- **Secundair**: een grijs vlak (`canvas-donker`), net als de velden. Een tweede keuze naast de hoofdactie, zoals de terugknop.\n" +
           "- **Tertiair**: alleen tekst, onderstreept. Een kleine actie, zoals \"Ander adres gebruiken\".\n\n" +
           "**Maat**\n" +
-          "- **Groot** (48px): de hoofdactie van een stap of pagina.\n" +
+          "- **Groot** (56px, net zo hoog als een veld): de hoofdactie van een stap of pagina.\n" +
           "- **Middel** (44px, standaard): knoppen in een kaart of in het menu.\n" +
           "- **Klein** (36px): kleine acties. Het klikvlak is toch 44px.\n\n" +
-          "**Iconen**: `icoonLinks` of `icoonRechts`, bijvoorbeeld een pijl. Met `alleenIcoon` is de knop rond; geef dan " +
+          "**Iconen**: `icoonLinks` of `icoonRechts`, bijvoorbeeld een pijl. Met `alleenIcoon` is de knop vierkant; geef dan " +
           "altijd een `aria-label` mee.\n\n" +
           "Knoplabels benoemen de uitkomst: \"Pauze aanvragen\", niet \"Versturen\". Op mobiel is de hoofdactie volle breedte. " +
           "Moet een link eruitzien als knop? Gebruik `buttonVariants`: `<Link className={buttonVariants({ variant: \"primair\", size: \"groot\" })}>`.",
@@ -77,7 +77,7 @@ export const AlleenIcoon: Story = {
       <Button variant="secundair" size="klein" alleenIcoon aria-label="Terug"><ChevronLeftIcon aria-hidden /></Button>
     </div>
   ),
-  parameters: { docs: { description: { story: "Rond, met alleen een icoon. Zoals de terugknop naast \"Verder\". Altijd met `aria-label`." } } },
+  parameters: { docs: { description: { story: "Vierkant, met alleen een icoon. Zoals de terugknop naast \"Verder\". Altijd met `aria-label`." } } },
 }
 
 export const TerugEnVerder: Story = {

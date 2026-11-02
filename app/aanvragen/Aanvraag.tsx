@@ -3,109 +3,116 @@
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { bewaarAntwoorden, useAntwoorden, wisAntwoorden, type Antwoorden } from "./opslag"
+import { formulierSchermen, verstToegestaan, volgende, vorige, SCHERMEN, type FormulierScherm } from "./schermen"
+import type { Factuur, Gegevens, Schuldeiser } from "./schema"
+import { VorigScherm } from "./onderdelen"
 import { VraagFactuur } from "./VraagFactuur"
 import { StapSchuldeiser } from "./StapSchuldeiser"
-import { StapFactuur } from "./StapFactuur"
-import { StapGegevens } from "./StapGegevens"
+import { StapBedrijfAdres, StapBedrijfEmail } from "./StapBedrijfBrief"
+import { StapBedrag, StapFactuurdatum, StapFactuurnummer } from "./StapFactuur"
+import { StapAdres, StapNaam } from "./StapGegevens"
 import { StapEmail } from "./StapEmail"
 
-// De verste stap waar je mag zijn: je kunt geen stap overslaan.
-// Stap 0 is de vraag "Klopt de factuur?".
-function verstToegestaan(a: Antwoorden) {
-  if (!a.factuurKlopt) return 0
-  if (!a.schuldeiser) return 1
-  if (!a.factuur) return 2
-  if (!a.gegevens) return 3
-  return 4
-}
-
-// ingelogdAls: het e-mailadres van je account. Dan sla je in stap 4 de code over.
+// Het formulier van de aanvraag: één vraag per scherm. Welke schermen er zijn staat in schermen.ts.
+// Het scherm staat in de adresbalk (/aanvragen?stap=bedrag). Je kunt geen vraag overslaan:
+// vraag je een scherm verderop, dan ga je naar de eerste vraag die nog open staat.
+// ingelogdAls: het e-mailadres van je account. Dan sla je bij "email" de code over.
 export function Aanvraag({ ingelogdAls }: { ingelogdAls?: string }) {
   const router = useRouter()
   const zoekParams = useSearchParams()
   const antwoorden = useAntwoorden()
   const [zaakId, setZaakId] = useState<string>()
 
-  const gevraagd = Number(zoekParams.get("stap") ?? "0")
-  const stap = antwoorden ? Math.min(Math.max(gevraagd, 0), verstToegestaan(antwoorden)) : 0
+  const scherm = antwoorden ? kiesScherm(zoekParams.get("stap"), antwoorden) : "klopt"
+  const gevraagd = zoekParams.get("stap") ?? "klopt"
 
-  // Probeer je een stap over te slaan, dan ga je naar de stap die nog open staat.
+  // Vraag je een scherm dat (nog) niet kan, dan ga je naar het scherm dat wel kan.
   useEffect(() => {
-    if (antwoorden && !zaakId && stap !== gevraagd) router.replace(`/aanvragen?stap=${stap}`)
-  }, [antwoorden, zaakId, stap, gevraagd, router])
+    if (antwoorden && !zaakId && scherm !== gevraagd) router.replace(`/aanvragen?stap=${scherm}`)
+  }, [antwoorden, zaakId, scherm, gevraagd, router])
 
   if (zaakId) return <Bewaard />
   if (!antwoorden) return null
 
-  function naarStap(volgende: number) {
-    router.push(`/aanvragen?stap=${volgende}`)
+  // Bewaar wat dit scherm opleverde en ga naar het volgende scherm.
+  function verder(nieuw: Partial<Antwoorden>) {
+    bewaarAntwoorden(nieuw)
+    const bijgewerkt = { ...antwoorden!, ...nieuw }
+    router.push(`/aanvragen?stap=${volgende(scherm, bijgewerkt)}`)
     window.scrollTo({ top: 0 })
   }
 
-  if (stap === 0) {
-    return (
-      <VraagFactuur
-        onKlopt={() => {
-          bewaarAntwoorden({ factuurKlopt: true })
-          naarStap(1)
-        }}
-      />
-    )
-  }
-  if (stap === 1) {
-    return (
-      <StapSchuldeiser
-        begin={antwoorden.schuldeiser}
-        onVerder={(schuldeiser) => {
-          bewaarAntwoorden({ schuldeiser })
-          naarStap(2)
-        }}
-      />
-    )
-  }
-  if (stap === 2) {
-    return (
-      <StapFactuur
-        begin={antwoorden.factuur}
-        onVerder={(factuur) => {
-          bewaarAntwoorden({ factuur })
-          naarStap(3)
-        }}
-      />
-    )
-  }
-  if (stap === 3) {
-    return (
-      <StapGegevens
-        begin={antwoorden.gegevens}
-        onVerder={(gegevens) => {
-          bewaarAntwoorden({ gegevens })
-          naarStap(4)
-        }}
-      />
-    )
-  }
+  const schuldeiser = antwoorden.schuldeiser
+  const vorigScherm = vorige(scherm, antwoorden)
 
   return (
-    <StapEmail
-      ingelogdAls={ingelogdAls}
-      aanvraag={{ schuldeiser: antwoorden.schuldeiser!, factuur: antwoorden.factuur!, gegevens: antwoorden.gegevens! }}
-      beginEmail={antwoorden.email}
-      codeVerstuurd={antwoorden.codeVerstuurd}
-      laatsteCode={antwoorden.laatsteCode}
-      onCodeVerstuurd={(email, tijd) => bewaarAntwoorden({ email, codeVerstuurd: { email, tijd } })}
-      onAnderAdres={() => bewaarAntwoorden({ codeVerstuurd: undefined, laatsteCode: antwoorden.codeVerstuurd })}
-      onKlaar={(id) => {
-        // Zaak bewaard: door naar scherm 5, je voorstel.
-        setZaakId(id)
-        wisAntwoorden()
-        router.push(`/aanvragen/${id}/voorstel`)
-      }}
-    />
+    <VorigScherm.Provider value={vorigScherm ? `/aanvragen?stap=${vorigScherm}` : null}>
+      {/* key: elk scherm begint opnieuw, ook als twee schermen hetzelfde onderdeel gebruiken */}
+      <div key={scherm}>
+        {scherm === "klopt" && <VraagFactuur onKlopt={() => verder({ factuurKlopt: true })} />}
+
+        {scherm === "bedrijf" && (
+          <StapSchuldeiser begin={schuldeiser} onVerder={(s) => verder({ schuldeiser: s })} />
+        )}
+        {scherm === "bedrijf-email" && schuldeiser && (
+          <StapBedrijfEmail schuldeiser={schuldeiser} onVerder={(deel) => verder({ schuldeiser: { ...schuldeiser, ...deel } })} />
+        )}
+        {scherm === "bedrijf-adres" && schuldeiser && (
+          <StapBedrijfAdres schuldeiser={schuldeiser} onVerder={(deel) => verder({ schuldeiser: { ...schuldeiser, ...deel } })} />
+        )}
+
+        {scherm === "factuurnummer" && <StapFactuurnummer begin={antwoorden.factuur} onVerder={(f) => verderFactuur(f)} />}
+        {scherm === "factuurdatum" && <StapFactuurdatum begin={antwoorden.factuur} onVerder={(f) => verderFactuur(f)} />}
+        {scherm === "bedrag" && <StapBedrag begin={antwoorden.factuur} onVerder={(f) => verderFactuur(f)} />}
+
+        {scherm === "naam" && <StapNaam begin={antwoorden.gegevens} onVerder={(g) => verderGegevens(g)} />}
+        {scherm === "adres" && <StapAdres begin={antwoorden.gegevens} onVerder={(g) => verderGegevens(g)} />}
+
+        {scherm === "email" && (
+          <StapEmail
+            ingelogdAls={ingelogdAls}
+            aanvraag={{
+              schuldeiser: schuldeiser as Schuldeiser,
+              factuur: antwoorden.factuur as Factuur,
+              gegevens: antwoorden.gegevens as Gegevens,
+            }}
+            beginEmail={antwoorden.email}
+            codeVerstuurd={antwoorden.codeVerstuurd}
+            laatsteCode={antwoorden.laatsteCode}
+            onCodeVerstuurd={(email, tijd) => bewaarAntwoorden({ email, codeVerstuurd: { email, tijd } })}
+            onAnderAdres={() => bewaarAntwoorden({ codeVerstuurd: undefined, laatsteCode: antwoorden.codeVerstuurd })}
+            onKlaar={(id) => {
+              // Zaak bewaard: door naar je voorstel.
+              setZaakId(id)
+              wisAntwoorden()
+              router.push(`/aanvragen/${id}/voorstel`)
+            }}
+          />
+        )}
+      </div>
+    </VorigScherm.Provider>
   )
+
+  // De factuur en je gegevens vul je over meer schermen in. Elk scherm vult aan wat er al was.
+  function verderFactuur(deel: Partial<Factuur>) {
+    verder({ factuur: { ...antwoorden!.factuur, ...deel } })
+  }
+  function verderGegevens(deel: Partial<Gegevens>) {
+    verder({ gegevens: { ...antwoorden!.gegevens, ...deel } })
+  }
 }
 
-// Kort zichtbaar terwijl we naar scherm 5 gaan.
+// Het scherm dat je te zien krijgt: het gevraagde scherm, als dat nodig is en je er al mag zijn.
+// Anders het eerste scherm dat nog open staat.
+function kiesScherm(gevraagd: string | null, a: Antwoorden): FormulierScherm {
+  const verst = verstToegestaan(a)
+  const lijst = formulierSchermen(a)
+  const scherm = lijst.find((s) => s === gevraagd)
+  if (!scherm) return verst
+  return SCHERMEN.indexOf(scherm) <= SCHERMEN.indexOf(verst) ? scherm : verst
+}
+
+// Kort zichtbaar terwijl we naar je voorstel gaan.
 function Bewaard() {
   return <p className="text-base text-muted-foreground">Je gegevens zijn bewaard. Even geduld...</p>
 }

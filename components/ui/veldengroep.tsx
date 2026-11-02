@@ -1,23 +1,37 @@
+"use client"
+
 import * as React from "react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
-// Betaalpauze: een rustig vlak om een groep invulvelden, zodat je ziet dat ze bij elkaar horen.
-// Iets donkerder dan de achtergrond (canvas-donker). De velden zelf blijven wit.
-// In de smalle kolom van 480px is het vlak op tablet en desktop 680px breed, net als een Kaart.
-// De velden blijven 480px en staan in het midden, met ruim lucht eromheen. Knoppen staan eronder, buiten het vlak.
+// Betaalpauze: de invulvelden van een stap, onder elkaar met ruim lucht ertussen. Geen vlak eromheen:
+// de grijze velden zelf laten zien wat je moet invullen (naar de Framer-versie).
+// Bij het openen van een stap komen de velden één voor één binnen: elk veld schuift 24px omhoog en wordt
+// zichtbaar, 0,2 seconde na het vorige. Wie minder beweging wil (instelling van het toestel), ziet ze meteen.
+const VELD_IN = { duration: 0.4, ease: [0.21, 0.73, 0.5, 1] } as const
+const VERTRAGING = 0.2
+
 function Veldengroep({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  const rustig = useReducedMotion()
+
   return (
     <div
       data-slot="veldengroep"
-      className={cn(
-        "rounded-lg bg-canvas-donker px-5 py-6 md:px-8 md:py-10",
-        "md:group-data-[kolom=smal]/kolom:-mx-25", // -100px aan beide kanten: van 480 naar 680px
-        className
-      )}
+      className={cn("mx-auto flex w-full max-w-form flex-col gap-8", className)}
       {...props}
     >
-      <div className="mx-auto flex w-full max-w-form flex-col gap-6">{children}</div>
+      {React.Children.toArray(children).map((veld, i) => (
+        <motion.div
+          key={React.isValidElement(veld) ? veld.key : i}
+          className="flex flex-col gap-4" // voor een blok met meer onderdelen, zoals tekst met een veld
+          initial={rustig ? false : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...VELD_IN, delay: i * VERTRAGING }}
+        >
+          {veld}
+        </motion.div>
+      ))}
     </div>
   )
 }

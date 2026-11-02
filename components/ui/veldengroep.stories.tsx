@@ -13,10 +13,11 @@ const meta = {
     docs: {
       description: {
         component:
-          "Een rustig vlak om een groep invulvelden, zodat je ziet dat ze bij elkaar horen. De kleur is `canvas-donker`, " +
-          "iets donkerder dan de achtergrond. De velden zelf blijven wit. Gebruik het op elk scherm waar je iets invult. " +
-          "In de smalle kolom van 480px is het vlak op tablet en desktop 680px breed, net als een Kaart. De velden blijven " +
-          "480px en staan in het midden, met ruim lucht eromheen. Knoppen staan eronder, buiten het vlak.",
+          "De invulvelden van een stap, onder elkaar met 32px lucht ertussen. Geen vlak eromheen: de grijze velden zelf " +
+          "laten zien wat je moet invullen. Gebruik het op elk scherm waar je iets invult. Zet label, veld en foutmelding " +
+          "samen in één blok (zoals `Veld` doet). Bij het openen komen de blokken één voor één binnen: elk schuift 24px " +
+          "omhoog en wordt zichtbaar in 0,4 seconde, 0,2 seconde na het vorige. Met de instelling 'minder beweging' " +
+          "staan ze er meteen. Knoppen staan eronder.",
       },
     },
   },

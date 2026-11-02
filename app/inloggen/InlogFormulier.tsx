@@ -35,26 +35,28 @@ export function InlogFormulier({ terug }: { terug?: string }) {
   return (
     <form action={vraagCode} className="flex flex-col gap-6" noValidate>
       <Veldengroep>
-        <Label htmlFor="email">
-          E-mailadres
-        </Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          key={ingevuld ?? ""}
-          defaultValue={ingevuld}
-          required
-          voorbeeld="naam@voorbeeld.nl"
-          aria-invalid={fout ? true : undefined}
-          aria-describedby={fout ? "email-fout" : undefined}
-        />
-        {fout && (
-          <Foutmelding id="email-fout">
-            {fout}
-          </Foutmelding>
-        )}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">
+            E-mailadres
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            key={ingevuld ?? ""}
+            defaultValue={ingevuld}
+            required
+            voorbeeld="naam@voorbeeld.nl"
+            aria-invalid={fout ? true : undefined}
+            aria-describedby={fout ? "email-fout" : undefined}
+          />
+          {fout && (
+            <Foutmelding id="email-fout">
+              {fout}
+            </Foutmelding>
+          )}
+        </div>
       </Veldengroep>
 
       <Button
@@ -94,27 +96,29 @@ function CodeStap({
       </p>
 
       <Veldengroep>
-        <Label htmlFor="code">
-          Code uit je mail
-        </Label>
-        <Input
-          id="code"
-          name="code"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={6}
-          required
-          autoFocus
-          aria-invalid={fout ? true : undefined}
-          voorbeeld="123456"
-          aria-describedby={fout ? "code-fout" : undefined}
-          className="tabular text-lg tracking-[0.3em]"
-        />
-        {fout && (
-          <Foutmelding id="code-fout">
-            {fout}
-          </Foutmelding>
-        )}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="code">
+            Code uit je mail
+          </Label>
+          <Input
+            id="code"
+            name="code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            required
+            autoFocus
+            aria-invalid={fout ? true : undefined}
+            voorbeeld="123456"
+            aria-describedby={fout ? "code-fout" : undefined}
+            className="tabular text-lg tracking-[0.3em]"
+          />
+          {fout && (
+            <Foutmelding id="code-fout">
+              {fout}
+            </Foutmelding>
+          )}
+        </div>
       </Veldengroep>
 
       <Button

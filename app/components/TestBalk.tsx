@@ -5,9 +5,8 @@ import { mailBeta } from "@/lib/verstuur"
 export function TestBalk() {
   if (!mailBeta()) return null
   return (
-    <div role="note" className="border-b border-warning/30 bg-warning-tint px-5 py-3 text-center text-sm text-ink md:px-8">
-      <span className="font-medium">Testversie.</span> Er gaat geen brief naar het bedrijf. Gebruik liever verzonnen
-      gegevens.
+    <div role="note" className="bg-ink px-5 py-3 text-center text-sm text-white md:px-8">
+      Dit is een testversie. Er gaat geen brief naar het bedrijf. Je hoeft geen echte gegevens te gebruiken.
     </div>
   )
 }

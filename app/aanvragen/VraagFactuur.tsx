@@ -15,7 +15,6 @@ export function VraagFactuur({ onKlopt }: { onKlopt: () => void }) {
 
   return (
     <Stap
-      stap={0}
       titel="Klopt de factuur?"
       uitleg="Een betaalvoorstel is voor een rekening die klopt, maar die je nu niet in één keer kunt betalen."
       terug={null}

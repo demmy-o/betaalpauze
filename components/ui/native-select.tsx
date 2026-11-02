@@ -11,7 +11,7 @@ function NativeSelect({ className, children, ...props }: React.ComponentProps<"s
       <select
         data-slot="native-select"
         className={cn(
-          "h-12 w-full appearance-none font-sans rounded-md border border-line-strong bg-surface pr-12 pl-4 text-base text-ink transition-colors duration-[120ms] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ink disabled:cursor-not-allowed disabled:bg-canvas disabled:text-subtle aria-invalid:border-2 aria-invalid:border-error",
+          "h-14 w-full appearance-none font-sans rounded-md border border-transparent bg-canvas-donker pr-12 pl-4 text-base text-ink transition-colors duration-[120ms] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ink disabled:cursor-not-allowed disabled:bg-canvas disabled:text-subtle aria-invalid:border-2 aria-invalid:border-error",
           className
         )}
         {...props}

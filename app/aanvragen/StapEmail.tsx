@@ -35,7 +35,7 @@ export function StapEmail({
   // Al ingelogd: geen e-mailadres en geen code nodig.
   if (ingelogdAls) {
     return (
-      <Stap stap={4} titel="Je voorstel bewaren" uitleg="Je bent ingelogd. We bewaren je voorstel bij je account.">
+      <Stap titel="Je voorstel bewaren" uitleg="Je bent ingelogd. We bewaren je voorstel bij je account.">
         <AlIngelogd email={ingelogdAls} aanvraag={aanvraag} onKlaar={onKlaar} />
       </Stap>
     )
@@ -44,7 +44,6 @@ export function StapEmail({
   return (
     <div className="flex flex-col gap-8">
       <Stap
-        stap={4}
         titel="Je e-mailadres"
         uitleg="We sturen je een code. Zo weten we dat jij het bent, en kan niemand een brief uit jouw naam sturen."
       >

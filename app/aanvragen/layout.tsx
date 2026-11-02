@@ -6,6 +6,7 @@ import { FlowKop } from "./FlowKop"
 
 // Elke pagina hier hoort bij de bètaversie en krijgt bovenaan de testbalk.
 // Daaronder de kopbalk met de voortgang van de aanvraag, en rechts "Inloggen" of "Mijn plan".
+// Mijn foto staat niet meer in de kopbalk maar boven de vraag (zie Stap).
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const {
@@ -15,7 +16,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   return (
     <>
       <TestBalk />
-      <Suspense fallback={<Kopbalk gezicht voortgang={0} />}>
+      <Suspense fallback={<Kopbalk voortgang={0} />}>
         <FlowKop ingelogd={Boolean(user)} />
       </Suspense>
       {children}

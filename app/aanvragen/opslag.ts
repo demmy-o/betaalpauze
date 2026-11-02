@@ -6,8 +6,8 @@ import type { Factuur, Gegevens, Schuldeiser } from "./schema"
 export type Antwoorden = {
   factuurKlopt?: boolean
   schuldeiser?: Schuldeiser
-  factuur?: Factuur
-  gegevens?: Gegevens
+  factuur?: Partial<Factuur> // per scherm aangevuld: nummer, datum, bedrag
+  gegevens?: Partial<Gegevens> // per scherm aangevuld: naam, adres
   email?: string
   codeVerstuurd?: { email: string; tijd: number }
   laatsteCode?: { email: string; tijd: number } // bewaard bij "ander e-mailadres"

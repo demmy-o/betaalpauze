@@ -22,6 +22,8 @@ export const schuldeiserSchema = z
     regelingUrl: z.string().optional(),
     regelingTelefoon: z.string().optional(),
     regelingOpmerking: z.string().optional(),
+    // "ja" als we het e-mailadres van het bedrijf al kennen. Dan slaan we de vraag ernaar over.
+    emailBekend: z.string().optional(),
     route: z.string(),
     email: z
       .string()
@@ -93,6 +95,31 @@ export const factuurSchema = z.object({
   klantnummer: z.string().trim().max(50).optional(),
 })
 
+// De vragen van de flow, één per scherm. Elk scherm controleert alleen zijn eigen velden.
+export const factuurnummerSchema = factuurSchema.pick({ factuurnummer: true, klantnummer: true })
+export const factuurdatumSchema = factuurSchema.pick({ factuurdatum: true })
+export const bedragSchema = factuurSchema.pick({ bedrag: true })
+
+// Het e-mailadres van het bedrijf, als we dat zelf niet weten.
+export const bedrijfEmailSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Vul het e-mailadres van het bedrijf in. Het staat meestal op de factuur.")
+    .regex(EMAIL, "Dit e-mailadres klopt niet helemaal. Check of je geen typefout hebt gemaakt."),
+})
+
+// Het postadres van het bedrijf, overgenomen van de factuur.
+export const bedrijfAdresSchema = z.object({
+  postStraat: z
+    .string()
+    .trim()
+    .min(1, "Vul de straat en het huisnummer van het bedrijf in, of de postbus. Het staat op de factuur.")
+    .regex(/\d/, "Vul ook het huisnummer of het nummer van de postbus in."),
+  postPostcode: z.string().trim().regex(POSTCODE, "Een postcode heeft 4 cijfers en 2 letters, zoals 1234 AB."),
+  postPlaats: z.string().trim().min(1, "Vul de plaats van het bedrijf in."),
+})
+
 export const gegevensSchema = z.object({
   voornaam: z.string().trim().min(1, "Vul je voornaam in."),
   achternaam: z.string().trim().min(1, "Vul je achternaam in."),
@@ -107,6 +134,9 @@ export const gegevensSchema = z.object({
     .regex(/^\d{4}\s?[a-zA-Z]{2}$/, "Een postcode heeft 4 cijfers en 2 letters, zoals 1234 AB."),
   plaats: z.string().trim().min(2, "Vul je woonplaats in."),
 })
+
+export const naamSchema = gegevensSchema.pick({ voornaam: true, achternaam: true })
+export const adresSchema = gegevensSchema.pick({ straat: true, postcode: true, plaats: true })
 
 export const emailSchema = z.object({
   email: z

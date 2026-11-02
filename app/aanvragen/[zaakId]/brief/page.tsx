@@ -22,7 +22,7 @@ export default async function BriefPagina({ params }: { params: Promise<{ zaakId
   if (zaak.status !== "concept") redirect(`/aanvragen/${zaakId}/verstuurd`)
   if (!zaak.plan) redirect(`/aanvragen/${zaakId}/voorstel`)
   const route = zaak.verzendroute === "post" ? "post" : "email"
-  if (route === "email" && !zaak.schuldeiserEmail) redirect("/aanvragen?stap=1")
+  if (route === "email" && !zaak.schuldeiserEmail) redirect("/aanvragen?stap=bedrijf")
 
   return (
     <Pagina kolom="stap">

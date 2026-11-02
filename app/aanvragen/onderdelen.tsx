@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
+import { motion, useReducedMotion } from "motion/react"
 import { ChevronLeftIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { z } from "zod"
@@ -10,15 +12,11 @@ import { Label } from "@/components/ui/label"
 import { buttonVariants } from "@/components/ui/button"
 import { Foutmelding } from "@/components/ui/foutmelding"
 
-// Stap 1 t/m 4: het formulier. Stap 5: je voorstel. Stap 6: je brief.
-export const AANTAL_STAPPEN = 6
-
-// Eén stap in de aanvraag, naar het voorbeeld van Lemonade: rust en focus.
-// De vraag groot en gecentreerd, daaronder de antwoorden in een smalle kolom.
-// De voortgang staat in de kopbalk (FlowKop). De terugknop staat naast de knop "Verder" (zie VerderKnop).
-// Zonder "terug" gaat de terugknop naar de vorige stap van het formulier. Met terug={null} is er geen terugknop.
+// Eén stap in de aanvraag, naar het voorbeeld van Lemonade en de eerdere Framer-versie: rust en focus.
+// Bovenaan mijn foto, dan de vraag groot en gecentreerd, daaronder de antwoorden in een smalle kolom.
+// De voortgang staat in de kopbalk (FlowKop). De terugknop staat naast de knop "Verder" (zie StapKnoppen).
+// Zonder "terug" gaat de terugknop naar het vorige scherm van het formulier (VorigScherm). Met terug={null} is er geen terugknop.
 export function Stap({
-  stap,
   titel,
   uitleg,
   terug,
@@ -26,7 +24,6 @@ export function Stap({
   breed,
   children,
 }: {
-  stap: number
   titel: string
   uitleg?: string
   terug?: string | null
@@ -34,11 +31,13 @@ export function Stap({
   breed?: React.ReactNode // inhoud over de hele breedte van de kop, zoals keuzetegels naast elkaar
   children: React.ReactNode
 }) {
-  const vorige = terug === undefined ? `/aanvragen?stap=${stap - 1}` : terug
+  const uitFlow = useContext(VorigScherm)
+  const vorige = terug === undefined ? uitFlow : terug
 
   return (
     <TerugContext.Provider value={vorige}>
       <div className="flex flex-col gap-10">
+        <Portret />
         <div className="flex flex-col gap-3 text-center">
           <h1 className="text-h1 text-balance">{titel}</h1>
           {uitleg && <p className="mx-auto max-w-prose text-lead text-balance">{uitleg}</p>}
@@ -56,6 +55,23 @@ export function Stap({
     </TerugContext.Provider>
   )
 }
+
+// Rond portret boven de vraag, zodat je ziet dat er een mens achter zit.
+function Portret() {
+  return (
+    <Image
+      src="/demmy.jpg"
+      alt=""
+      width={80}
+      height={80}
+      priority
+      className="mx-auto size-20 rounded-full object-cover"
+    />
+  )
+}
+
+// Het adres van het vorige scherm in het formulier. Aanvraag zet het, Stap leest het.
+export const VorigScherm = createContext<string | null>(null)
 
 // Het terug-adres van de stap waar je in zit. Stap zet het, TerugKnop leest het.
 const TerugContext = createContext<string | null>(null)
@@ -77,12 +93,20 @@ export function TerugKnop() {
 
 // De knoppen onderaan een stap: de terugknop links (als die er is), zo klein mogelijk.
 // De hoofdactie ernaast vult de rest van de breedte, net zo breed als de velden erboven.
+// Bij het openen van een stap schuiven ze 20px omhoog en worden ze zichtbaar, tegelijk met het eerste veld.
 export function StapKnoppen({ children }: { children: React.ReactNode }) {
+  const rustig = useReducedMotion()
+
   return (
-    <div className="flex w-full gap-3 *:data-[slot=button]:flex-1">
+    <motion.div
+      initial={rustig ? false : { opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.12, 0.23, 0.5, 1] }}
+      className="flex w-full gap-3 *:data-[slot=button]:flex-1"
+    >
       <TerugKnop />
       {children}
-    </div>
+    </motion.div>
   )
 }
 

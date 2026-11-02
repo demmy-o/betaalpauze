@@ -1,16 +1,16 @@
 "use client"
 
-import { factuurSchema, type Factuur } from "./schema"
+import { bedragSchema, factuurdatumSchema, factuurnummerSchema, type Factuur } from "./schema"
 import { FoutSamenvatting, Stap, Veld, StapKnoppen, useStapFormulier } from "./onderdelen"
 import { Button } from "@/components/ui/button"
 import { Veldengroep } from "@/components/ui/veldengroep"
 
-// Stap 2: over welke factuur gaat het?
-export function StapFactuur({ begin, onVerder }: { begin?: Factuur; onVerder: (f: Factuur) => void }) {
-  const formulier = useStapFormulier(factuurSchema, {
+// De factuur, in drie schermen: het nummer, de datum en het bedrag.
+type Props = { begin?: Partial<Factuur>; onVerder: (f: Partial<Factuur>) => void }
+
+export function StapFactuurnummer({ begin, onVerder }: Props) {
+  const formulier = useStapFormulier(factuurnummerSchema, {
     factuurnummer: begin?.factuurnummer ?? "",
-    factuurdatum: begin?.factuurdatum ?? "",
-    bedrag: begin?.bedrag ?? "",
     klantnummer: begin?.klantnummer ?? "",
   })
   const { waarden, fouten, zet, verlaten } = formulier
@@ -23,7 +23,7 @@ export function StapFactuur({ begin, onVerder }: { begin?: Factuur; onVerder: (f
 
   return (
     <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
-      <Stap stap={2} titel="Over welke factuur gaat het?" uitleg="Pak je factuur erbij. Alles staat meestal bovenaan.">
+      <Stap titel="Wat is het factuurnummer?" uitleg="Pak je factuur erbij. Het staat meestal bovenaan.">
         <FoutSamenvatting fouten={formulier.samenvatting} />
 
         <Veldengroep>
@@ -38,6 +38,45 @@ export function StapFactuur({ begin, onVerder }: { begin?: Factuur; onVerder: (f
             onVerlaten={() => verlaten("factuurnummer")}
           />
           <Veld
+            id="klantnummer"
+            label="Klantnummer"
+            voorbeeld="1234567"
+            optioneel
+            autoComplete="off"
+            waarde={waarden.klantnummer ?? ""}
+            fout={fouten.klantnummer}
+            onWaarde={(w) => zet("klantnummer", w)}
+            onVerlaten={() => verlaten("klantnummer")}
+          />
+        </Veldengroep>
+
+        <StapKnoppen>
+          <Button type="submit" variant="primair" size="groot">
+            Verder
+          </Button>
+        </StapKnoppen>
+      </Stap>
+    </form>
+  )
+}
+
+export function StapFactuurdatum({ begin, onVerder }: Props) {
+  const formulier = useStapFormulier(factuurdatumSchema, { factuurdatum: begin?.factuurdatum ?? "" })
+  const { waarden, fouten, zet, verlaten } = formulier
+
+  function verstuur(e: React.FormEvent) {
+    e.preventDefault()
+    const data = formulier.controleerAlles()
+    if (data) onVerder(data)
+  }
+
+  return (
+    <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
+      <Stap titel="Wat is de datum van de factuur?">
+        <FoutSamenvatting fouten={formulier.samenvatting} />
+
+        <Veldengroep>
+          <Veld
             id="factuurdatum"
             label="Datum van de factuur"
             type="date"
@@ -46,6 +85,34 @@ export function StapFactuur({ begin, onVerder }: { begin?: Factuur; onVerder: (f
             onWaarde={(w) => zet("factuurdatum", w)}
             onVerlaten={() => verlaten("factuurdatum")}
           />
+        </Veldengroep>
+
+        <StapKnoppen>
+          <Button type="submit" variant="primair" size="groot">
+            Verder
+          </Button>
+        </StapKnoppen>
+      </Stap>
+    </form>
+  )
+}
+
+export function StapBedrag({ begin, onVerder }: Props) {
+  const formulier = useStapFormulier(bedragSchema, { bedrag: begin?.bedrag ?? "" })
+  const { waarden, fouten, zet, verlaten } = formulier
+
+  function verstuur(e: React.FormEvent) {
+    e.preventDefault()
+    const data = formulier.controleerAlles()
+    if (data) onVerder(data)
+  }
+
+  return (
+    <form onSubmit={verstuur} className="flex flex-col gap-8" noValidate>
+      <Stap titel="Hoeveel moet je betalen?" uitleg="Het bedrag dat op de factuur staat.">
+        <FoutSamenvatting fouten={formulier.samenvatting} />
+
+        <Veldengroep>
           <Veld
             id="bedrag"
             label="Bedrag in euro"
@@ -57,27 +124,12 @@ export function StapFactuur({ begin, onVerder }: { begin?: Factuur; onVerder: (f
             onWaarde={(w) => zet("bedrag", w)}
             onVerlaten={() => verlaten("bedrag")}
           />
-          <Veld
-            id="klantnummer"
-            label="Klantnummer"
-            voorbeeld="1234567"
-            optioneel
-            autoComplete="off"
-            waarde={waarden.klantnummer}
-            fout={fouten.klantnummer}
-            onWaarde={(w) => zet("klantnummer", w)}
-            onVerlaten={() => verlaten("klantnummer")}
-          />
         </Veldengroep>
 
         <StapKnoppen>
-
           <Button type="submit" variant="primair" size="groot">
-
-            Verder naar je gegevens
-
+            Verder
           </Button>
-
         </StapKnoppen>
       </Stap>
     </form>

@@ -17,23 +17,25 @@ export function BetaFormulier({ terug }: { terug?: string }) {
     <form action={verstuur} className="flex flex-col gap-6" noValidate>
       <input type="hidden" name="terug" value={terug ?? ""} />
       <Veldengroep>
-        <Label htmlFor="wachtwoord">
-          Wachtwoord
-        </Label>
-        <Input
-          id="wachtwoord"
-          name="wachtwoord"
-          type="password"
-          autoComplete="current-password"
-          required
-          aria-invalid={stand.fout ? true : undefined}
-          aria-describedby={stand.fout ? "wachtwoord-fout" : undefined}
-        />
-        {stand.fout && (
-          <Foutmelding id="wachtwoord-fout" role="alert">
-            {stand.fout}
-          </Foutmelding>
-        )}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="wachtwoord">
+            Wachtwoord
+          </Label>
+          <Input
+            id="wachtwoord"
+            name="wachtwoord"
+            type="password"
+            autoComplete="current-password"
+            required
+            aria-invalid={stand.fout ? true : undefined}
+            aria-describedby={stand.fout ? "wachtwoord-fout" : undefined}
+          />
+          {stand.fout && (
+            <Foutmelding id="wachtwoord-fout" role="alert">
+              {stand.fout}
+            </Foutmelding>
+          )}
+        </div>
       </Veldengroep>
 
       <Button

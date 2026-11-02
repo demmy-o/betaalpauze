@@ -64,12 +64,12 @@ we niet. Daarnaast zijn er steunkleuren voor tekst, lijnen en de pagina.
 
 | Kleur | Wanneer gebruiken | Nooit gebruiken voor |
 |---|---|---|
-| `ink` | Display, koppen, labels, links, primaire knop, focusring | Grote achtergrondvlakken (alleen de footer) |
+| `ink` | Display, koppen, labels, links, tekst op de primaire knop, focusring | Grote achtergrondvlakken (alleen de footer en de testbalk) |
 | `leisteen` | Tweede donkere kleur: iconen, illustratielijnen | Lopende tekst |
 | `mint` | De vlakkleur: hero, zijbalk, illustratieblok, mobiel menu | Status |
 | `rood` | Fout: icoon, rand van een fout veld. `rood-tint` als achtergrond van een foutmelding | Tekst (te weinig contrast) |
-| `groen` | Gelukt: icoon, stip. `groen-tint` als achtergrond | Tekst |
-| `geel` | Let op: icoon, stip, tag. `geel-tint` als achtergrond, ook voor de testbalk | Tekst |
+| `groen` | Gelukt: icoon, stip. `groen-tint` als achtergrond. De primaire knop (met tekst in ink) | Tekst |
+| `geel` | Let op: icoon, stip, tag. `geel-tint` als achtergrond | Tekst |
 | `grijs` | Neutraal: icoon, stip. `grijs-tint` als achtergrond van een neutrale melding | Tekst |
 
 **Steunkleuren**
@@ -170,34 +170,39 @@ Mobile-first. De aanvraagflow wordt op telefoon gedaan.
 
 ## 6b. Opbouw van een stap
 
-Naar het voorbeeld van Lemonade: rust en focus, één vraag per scherm. Geen chat, gewoon schermen na elkaar.
+Naar het voorbeeld van Lemonade en de eerdere Framer-versie: rust en focus, één vraag per scherm. Geen chat, gewoon schermen na elkaar.
 
 - **Kopbalk** bovenaan, in de kleur van de achtergrond: logo links, zonder link. De lijn onder de balk is de voortgang en vult zich groen.
-  Een rond portret staat in het midden, half over de lijn. Zo weet je dat er een mens achter zit.
+- **Portret** boven de vraag: mijn foto, rond, 80px, gecentreerd. Zo weet je dat er een mens achter zit.
 - **Lucht** boven de vraag: de vraag begint ruim onder de kopbalk.
 - **De vraag groot en gecentreerd**, tot 880px breed, met de uitleg eronder.
 - **De antwoorden in een smalle kolom** van 480px, gecentreerd. Labels en velden zijn daarbinnen links uitgelijnd.
 - **Keuzes met een tekening** mogen over de hele breedte van de vraag, als tegels naast elkaar (Keuzetegel).
-- **De knoppen** zijn even breed als de velden: links een ronde secundaire terugknop (pijltje naar links), zo klein
+- **De knoppen** zijn even breed als de velden: links een vierkante secundaire terugknop (pijltje naar links), zo klein
   mogelijk, en de hoofdknop vult de rest van de breedte.
 - **Kaarten** (uitleg, bevestiging, samenvatting) zijn op tablet en desktop breder dan de kolom: 680px.
-- **Invulvelden** staan samen in een Veldengroep: een vlak in `canvas-donker`, net zo breed als de kaarten (680px), met de
-  witte velden van 480px in het midden. Knoppen staan eronder, buiten het vlak.
+- **Invulvelden** staan samen in een Veldengroep: onder elkaar met 32px lucht ertussen, zonder vlak eromheen.
+  De grijze velden zelf laten zien wat je moet invullen. Knoppen staan eronder.
+- **Eén vraag per scherm.** Zo min mogelijk op één pagina: velden die bij elkaar horen (voornaam en achternaam,
+  straat, postcode en plaats) mogen samen, de rest krijgt een eigen scherm. Een scherm dat niet nodig is, slaan we over
+  (zoals het e-mailadres van een bedrijf dat we al kennen). De volgorde staat in `app/aanvragen/schermen.ts`.
+- Kaarten in de flow (zoals het gekozen bedrijf) zijn net zo breed als de velden: `<Kaart breed={false}>`.
 - In code: `<Pagina kolom="stap">` met daarin `<Stap>`. De kopbalk komt uit de layout.
 
 ---
 
 ## 6c. Knoppen
 
-Drie niveaus, drie maten. Alle knoppen zijn pills.
+Drie niveaus, drie maten. Knoppen hebben 12px hoeken, net als de velden.
 
-- **Primair** (gevuld, ink): de hoofdactie. Maximaal één per scherm. Geen hoverkleur.
-- **Secundair** (rand in ink): een tweede keuze naast de hoofdactie.
+- **Primair** (gevuld, groen, tekst in ink): de hoofdactie. Maximaal één per scherm. Geen hoverkleur.
+  Nooit witte tekst op groen: dat haalt maar 2,4:1.
+- **Secundair** (grijs vlak, `canvas-donker`): een tweede keuze naast de hoofdactie, zoals de terugknop.
 - **Tertiair** (alleen tekst, onderstreept): een kleine actie.
-- **Groot** 48px voor de hoofdactie, **middel** 44px in kaarten en menu, **klein** 36px voor kleine acties
+- **Groot** 56px voor de hoofdactie (net zo hoog als een veld), **middel** 44px in kaarten en menu, **klein** 36px voor kleine acties
   (het klikvlak blijft 44px).
 - Feedback: de muis wordt een handje, bij klikken zakt de knop 1px in, en de focusring is altijd zichtbaar.
-- Een icoon mag links of rechts van de tekst. Een knop met alleen een icoon is rond en heeft een `aria-label`.
+- Een icoon mag links of rechts van de tekst. Een knop met alleen een icoon is vierkant en heeft een `aria-label`.
 
 ---
 
@@ -208,14 +213,14 @@ Drie niveaus, drie maten. Alle knoppen zijn pills.
 - Label altijd zichtbaar bóven het veld. Nooit alleen een placeholder als label.
 - Geen hulptekst onder het label. Geef een voorbeeld als hinttekst in het veld: "Bijvoorbeeld: Zilveren Kruis".
   De hinttekst vervangt nooit het label. Belangrijke informatie die niet in een voorbeeld past, hoort in de uitleg van de stap.
-- Velden hebben radius 12px en een `line-strong` rand van 1px. Focus: 2px `ink` ring met
-  2px offset.
+- Velden zijn 56px hoog, met radius 12px en een grijs vlak (`canvas-donker`) zonder rand. Het label staat erboven
+  in 18px. Focus: 2px `ink` ring met 2px offset.
 - Validatie bij het verlaten van een veld (`onBlur`), niet tijdens het typen. Wel direct opnieuw
   valideren zodra de gebruiker de fout corrigeert.
 - Fout: rode rand + foutmelding onder het veld + `aria-describedby` naar die melding + `aria-invalid`.
 - Eén foutsamenvatting bovenaan bij verzenden, met links naar de velden. Focus springt daarheen.
 - Verplicht is de norm. Markeer alleen optionele velden, met "(optioneel)" in het label.
-- Groepeer maximaal 3–5 velden per stap.
+- Maximaal 3 velden per scherm, en alleen als ze bij elkaar horen.
 - Bedragen en IBAN: `inputmode` en `autocomplete` altijd invullen.
 - Voortgang bij meerdere stappen: een groene balk. De stap ("Stap 2 van 4") staat in het label voor schermlezers.
 - Antwoorden blijven bewaard bij teruggaan. Nooit een gevuld formulier leegmaken.
@@ -253,11 +258,13 @@ Beweging bevestigt, ze vermaakt niet.
 | Hover, focus, kleurwissel | 120ms | `ease-out` |
 | Knop-indrukken | 80ms | `ease-out` |
 | Element verschijnt (kaart, melding) | 220ms | `cubic-bezier(0.2, 0, 0, 1)` |
-| Stapovergang in de flow | 260ms | `cubic-bezier(0.2, 0, 0, 1)` |
+| Stapovergang in de flow: elk veld | 400ms, 200ms na het vorige | `cubic-bezier(0.21, 0.73, 0.5, 1)` |
+| Stapovergang in de flow: knoppen | 400ms, tegelijk met het eerste veld | `cubic-bezier(0.12, 0.23, 0.5, 1)` |
 | Dialog / sheet | 280ms | `cubic-bezier(0.2, 0, 0, 1)` |
 | Voortgangsbalk | 400ms | `ease-in-out` |
 
 - Verschijnen = fade + maximaal 8px verschuiving. Geen schaal, geen bounce.
+  Uitzondering: bij een nieuwe stap in de flow schuiven de velden 24px en de knoppen 20px omhoog (naar de Framer-versie).
 - Pastelvlakken animeren niet. Ze verschuiven niet mee bij scroll, ze faden niet in.
 - Nooit twee dingen tegelijk animeren op één scherm.
 - Bij `prefers-reduced-motion: reduce`: alle verplaatsing uit, alleen opacity, duur naar 0ms

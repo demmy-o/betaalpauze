@@ -5,31 +5,32 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 // Betaalpauze: de knop. Drie niveaus (primair, secundair, tertiair) in drie maten (groot, middel, klein).
-// Kleuren komen uit het palet (zie Fundamenten/Kleuren). Alle knoppen zijn pills.
+// Kleuren komen uit het palet (zie Fundamenten/Kleuren). Knoppen hebben 12px hoeken, net als de velden.
+// Tekst op groen is altijd ink: wit op groen is te slecht leesbaar.
 const knopVarianten = cva(
   // Basis: vorm, letter, focusring en uitgeschakeld
-  "group/button relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border font-sans font-medium whitespace-nowrap transition-[background-color,translate] duration-[120ms] outline-none select-none active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ink disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md border font-sans font-semibold whitespace-nowrap transition-[background-color,translate] duration-[120ms] outline-none select-none active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-solid focus-visible:outline-ink disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         // De hoofdactie. Maximaal één per scherm. Geen hoverkleur: lichter worden leest als "uitgeschakeld".
-        primair: "border-ink bg-ink text-white",
-        // Een tweede keuze naast de hoofdactie.
-        secundair: "border-ink bg-transparent text-ink hover:bg-mint-tint",
+        primair: "border-groen bg-groen text-ink",
+        // Een tweede keuze naast de hoofdactie, zoals de terugknop. Een grijs vlak, net als de velden.
+        secundair: "border-canvas-donker bg-canvas-donker text-ink hover:border-line hover:bg-line",
         // Een kleine actie, zonder rand. Bijvoorbeeld "Ander adres gebruiken".
         tertiair: "border-transparent bg-transparent text-ink underline underline-offset-4 hover:bg-mint-tint",
       },
       size: {
-        groot: "h-12 gap-2 px-6 text-base [&_svg:not([class*='size-'])]:size-5",
+        groot: "h-14 gap-2 px-6 text-base [&_svg:not([class*='size-'])]:size-5",
         middel: "h-11 gap-2 px-5 text-sm [&_svg:not([class*='size-'])]:size-[18px]",
         // Klein is 36px hoog, maar het klikvlak is 44px (minimaal aanraakvlak).
         klein: "h-9 gap-1.5 px-4 text-sm after:absolute after:-inset-1 [&_svg:not([class*='size-'])]:size-4",
       },
-      // Alleen een icoon: een ronde knop. Geef dan altijd een aria-label mee.
+      // Alleen een icoon: een vierkante knop. Geef dan altijd een aria-label mee.
       alleenIcoon: { true: "px-0" },
     },
     compoundVariants: [
-      { alleenIcoon: true, size: "groot", className: "w-12" },
+      { alleenIcoon: true, size: "groot", className: "w-14" },
       { alleenIcoon: true, size: "middel", className: "w-11" },
       { alleenIcoon: true, size: "klein", className: "w-9" },
     ],
